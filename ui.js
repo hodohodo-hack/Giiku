@@ -1,140 +1,100 @@
 import React, { useState } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
+import { HEADS, BODIES, FEET, COLORS } from './parts.js';
 
 /**
- * 共通のベースボディ (ドット絵)
- * 記号の密度を統一し、安っぽさを排除したソリッドなデザインです。
- */
-const BASE_BODY = [
-  '      ◢██◣      ',
-  '    ◢██████◣    ',
-  '  ◢██      ██◣  ',
-  '  ██  ■  ■  ██  ',
-  '  ██        ██  ',
-  '  ◥████████◤  '
-];
-
-/**
- * スキン・バリエーション
- * 共通のボディに対して、頭部(top)や足元(bottom)のドットを差し替えます。
- */
-const SKINS = [
-  {
-    name: 'BASIC SLIME',
-    color: 'cyanBright',
-    top:    ['                ', '                '],
-    bottom: ['                '],
-    desc: 'もっとも　ピュアな　スライム。'
-  },
-  {
-    name: 'KING SLIME',
-    color: 'yellowBright',
-    top:    ['    █  █  █     ', '    ███████     '], // ドットの王冠
-    bottom: ['                '],
-    desc: 'すべてを　統べる　スライムの王。'
-  },
-  {
-    name: 'WARRIOR SLIME',
-    color: 'redBright',
-    top:    ['     ◢██◣       ', '   ◢██████◣     '], // 重厚な兜
-    bottom: [' ◢◤    █    ◥◣  '], // 剣の構え
-    desc: '戦うことを　決意した　スライム。'
-  },
-  {
-    name: 'WIZARD SLIME',
-    color: 'magentaBright',
-    top:    ['      ◢◣        ', '     ◢██◣       ', '    ◢████◣      '], // 魔法使いの帽子
-    bottom: ['                '],
-    desc: 'いにしえの　魔法を　あやつる。'
-  },
-  {
-    name: 'HEAVY SLIME',
-    color: 'greenBright',
-    top:    ['                ', '                '],
-    bottom: ['  ████████████  ', '  ◥██████████◤  '], // 重装甲のベース
-    desc: '鉄壁の　守りを　ほこる　重装型。'
-  }
-];
-
-/**
- * メインアプリケーション
+ * カスタム・ピクセル・スタジオ
+ * HEAD, BODY, FEET の各パーツを独立して組み替えられます。
  */
 const App = () => {
   const { exit } = useApp();
-  const [idx, setIdx] = useState(0);
+  
+  // 各部位のインデックスを管理
+  const [hIdx, setHIdx] = useState(0);
+  const [bIdx, setBIdx] = useState(0);
+  const [fIdx, setFIdx] = useState(0);
+  const [cIdx, setCIdx] = useState(0);
 
-  // キー入力処理
-  useInput((input, key) => {
+  // キー入力処理: 1(頭), 2(体), 3(足), 4(色) をサイクル
+  useInput((input) => {
     if (input === 'q') exit();
-    if (key.rightArrow || input === ' ') setIdx(p => (p + 1) % SKINS.length);
-    if (key.leftArrow) setIdx(p => (p - 1 + SKINS.length) % SKINS.length);
+    if (input === '1') setHIdx(p => (p + 1) % HEADS.length);
+    if (input === '2') setBIdx(p => (p + 1) % BODIES.length);
+    if (input === '3') setFIdx(p => (p + 1) % FEET.length);
+    if (input === '4') setCIdx(p => (p + 1) % COLORS.length);
   });
 
-  const s = SKINS[idx];
+  const color = COLORS[cIdx];
 
   return React.createElement(
-    Box,
+    Box, 
     { 
       flexDirection: 'column', 
       alignItems: 'center', 
       padding: 2, 
-      width: 60 
+      width: 60, 
+      borderStyle: 'single', 
+      borderColor: 'gray' 
     },
     
-    // 1. ピクセルアート描画エリア
+    // キャラクター表示エリア
+    // 各パーツの pixels 配列を順番に描画して一つのキャラにする
     React.createElement(
-      Box,
+      Box, 
       { 
         flexDirection: 'column', 
         alignItems: 'center', 
-        height: 12, 
-        justifyContent: 'center',
-        marginBottom: 1
+        height: 14, 
+        justifyContent: 'center', 
+        marginBottom: 1 
       },
+      // 1. HEAD
+      HEADS[hIdx].pixels.map((line, i) => 
+        React.createElement(Text, { key: `h-${i}`, color, bold: true }, line)
+      ),
+      // 2. BODY
+      BODIES[bIdx].pixels.map((line, i) => 
+        React.createElement(Text, { key: `b-${i}`, color, bold: true }, line)
+      ),
+      // 3. FEET
+      FEET[fIdx].pixels.map((line, i) => 
+        React.createElement(Text, { key: `f-${i}`, color, bold: true }, line)
+      )
+    ),
+
+    // カスタマイズ・コントロールパネル
+    React.createElement(
+      Box, 
+      { 
+        flexDirection: 'column', 
+        width: 48, 
+        borderStyle: 'round', 
+        borderColor: 'cyan', 
+        paddingX: 2 
+      },
+      [
+        { key: '1', label: 'HEAD  (帽子/角) ', val: HEADS[hIdx].name },
+        { key: '2', label: 'BODY  (胴体)    ', val: BODIES[bIdx].name },
+        { key: '3', label: 'FEET  (足元)    ', val: FEET[fIdx].name },
+        { key: '4', label: 'COLOR (メイン)  ', val: color, c: color },
+      ].map(item => 
+        React.createElement(
+          Box, 
+          { key: item.key, justifyContent: 'space-between' },
+          React.createElement(
+            Box, {},
+            React.createElement(Text, { color: 'cyan', bold: true }, `[${item.key}] `),
+            React.createElement(Text, { color: 'white' }, item.label)
+          ),
+          React.createElement(Text, { color: item.c || 'gray', bold: !!item.c }, item.val)
+        )
+      ),
       
-      // 頭部パーツ (SKIN固有)
-      s.top.map((line, i) => 
-        React.createElement(Text, { key: `t-${i}`, color: s.color, bold: true }, line)
-      ),
-
-      // 共通ボディ
-      BASE_BODY.map((line, i) => 
-        React.createElement(Text, { key: `b-${i}`, color: s.color, bold: true }, line)
-      ),
-
-      // 足元パーツ (SKIN固有)
-      s.bottom.map((line, i) => 
-        React.createElement(Text, { key: `bt-${i}`, color: s.color, bold: true }, line)
-      )
-    ),
-
-    // 2. ステータス・メッセージ
-    React.createElement(
-      Box,
-      { 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        borderStyle: 'bold', 
-        borderColor: s.color, 
-        paddingX: 4, 
-        paddingY: 1,
-        width: 46
-      },
+      // フッター
       React.createElement(
-        Text, 
-        { color: s.color, bold: true, invert: true }, 
-        `  ${s.name}  `
-      ),
-      React.createElement(
-        Box, { marginTop: 1 },
-        React.createElement(Text, { color: 'white' }, s.desc)
+        Box, { justifyContent: 'center', marginTop: 1 },
+        React.createElement(Text, { dimColor: true }, 'Press [q] to exit studio')
       )
-    ),
-
-    // 3. ナビゲーション
-    React.createElement(
-      Box, { marginTop: 1 },
-      React.createElement(Text, { color: 'gray', dimColor: true }, ' [ SPACE / ARROWS ] でスキン変更 • [q] 終了 ')
     )
   );
 };
