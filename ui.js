@@ -1,179 +1,174 @@
 import React, { useState } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
 
-// --- (3) メガ・オーグメント (巨大な外部パーツ) ---
-const AUGMENTS = [
-  { name: 'NONE', l: '      ', r: '      ' },
+// --- (1) HEAD: 被り物 (シルエットのトップを支配) ---
+const HEADS = [
+  { name: 'NORMAL', render: (c) => null },
+  { 
+    name: 'DINO-MASK', 
+    render: (c) => React.createElement(
+      Box, { flexDirection: 'column', alignItems: 'center', marginBottom: -1 },
+      React.createElement(Text, { color: c, bold: true }, '  ◢▇▇▇◣  '),
+      React.createElement(Text, { color: c, bold: true }, ' ◢█▼▼▼█◣ ') 
+    )
+  },
+  { 
+    name: 'SAMURAI-KABUTO', 
+    render: (c) => React.createElement(
+      Box, { flexDirection: 'column', alignItems: 'center', marginBottom: -1 },
+      React.createElement(Text, { color: 'yellow', bold: true }, '   ◢◣   '),
+      React.createElement(Text, { color: c, bold: true }, ' ◢█████◣ ')
+    )
+  },
+  { 
+    name: 'WITCH-HAT', 
+    render: (c) => React.createElement(
+      Box, { flexDirection: 'column', alignItems: 'center', marginBottom: -1 },
+      React.createElement(Text, { color: c, bold: true }, '   ▲   '),
+      React.createElement(Text, { color: c, bold: true }, '  ◢█◣  '),
+      React.createElement(Text, { color: c, bold: true }, ' ━━━━━━━ ')
+    )
+  }
+];
+
+// --- (2) BODY-WRAP: 胴体の外装 ---
+const BODIES = [
+  { 
+    name: 'DEFAULT', px: 2, py: 0, 
+    l: React.createElement(Text, {}, '      '), 
+    r: React.createElement(Text, {}, '      ') 
+  },
+  { 
+    name: 'HOTDOG-BUNS', 
+    px: 1, py: 0, 
+    l: React.createElement(Text, { color: 'yellow' }, ' ◢\n █\n ◥'), 
+    r: React.createElement(Text, { color: 'yellow' }, '◣ \n█ \n◤ ') 
+  },
   { 
     name: 'GIGA-WINGS', 
-    l: '  ◢█\n  ██\n  ◥█', 
-    r: '█◣\n██\n█◤' 
+    px: 2, py: 0, 
+    l: React.createElement(Text, { color: 'magentaBright' }, '◢▇\n▇ \n◥▇'), 
+    r: React.createElement(Text, { color: 'magentaBright' }, '▇◣\n ▇\n▇◤') 
   },
   { 
-    name: 'MEGA-SHIELDS', 
-    l: '┏━━┓\n┃  ┃\n┗━━┛', 
-    r: '┏━━┓\n┃  ┃\n┗━━┛' 
-  },
-  { 
-    name: 'ORBITAL-CORES', 
-    l: ' ( ◯ )\n      \n ( ◯ )', 
-    r: '( ◯ )\n     \n( ◯ )' 
-  },
-  { 
-    name: 'THRUSTER-PACK', 
-    l: ' ◢◤ \n◢◤  \n◥◣  ', 
-    r: ' ◥◣ \n  ◥◣\n  ◢◤' 
+    name: 'SHOGUN-ARMOR', 
+    px: 1, py: 0, 
+    l: React.createElement(Text, { color: 'redBright' }, ' ◢█\n ◥█'), 
+    r: React.createElement(Text, { color: 'redBright' }, '█◣ \n█◤ ') 
   }
 ];
 
-// --- (4) カラー・オーラ (属性と全体の雰囲気) ---
-const COLORS = [
-  { name: 'NEON-CYAN',  val: 'cyanBright',    aura: '⚡  NEON-STORM  ⚡' },
-  { name: 'HELL-FIRE',  val: 'redBright',     aura: '🔥  INFERNO-MODE  🔥' },
-  { name: 'BIO-HAZARD', val: 'greenBright',   aura: '🌿  TOXIC-PULSE  🌿' },
-  { name: 'SUN-LIGHT',  val: 'yellowBright',  aura: '✨  SOLAR-FLARE  ✨' },
-  { name: 'VOID-GHOST', val: 'white',         aura: '☁️  ECHO-GHOST  ☁️' },
-  { name: 'DEEP-SEA',   val: 'blueBright',    aura: '🌊  TIDAL-FORCE  🌊' },
-  { name: 'DARK-EYE',   val: 'magentaBright', aura: '👁️  PSYCHO-VOID  👁️' },
+// --- (3) FEET: 足元 ---
+const FEET = [
+  { name: 'NORMAL-FEET', val: '  ┛    ┗  ' },
+  { name: 'HEAVY-BOOTS', val: ' ▰▰    ▰▰ ' },
+  { name: 'FLOAT-JET  ', val: '  v v v v  ' },
+  { name: 'TANK-TREAD ', val: ' ▆▆▆▆▆▆▆▆ ' },
 ];
 
-// --- (1) シャーシ (骨格) ---
-const CHASSIS = [
-  { 
-    name: 'CORE-SHELL', 
-    render: (color, expr) => React.createElement(
-      Box, { borderStyle: 'round', borderColor: color, paddingX: 2, height: 3, alignItems: 'center', justifyContent: 'center' },
-      React.createElement(Text, { color: 'white', bold: true }, expr)
-    )
-  },
-  { 
-    name: 'TITAN-TANK', 
-    render: (color, expr) => React.createElement(
-      Box, { flexDirection: 'column', alignItems: 'center' },
-      React.createElement(
-        Box, { borderStyle: 'bold', borderColor: color, paddingX: 3, height: 3, alignItems: 'center', justifyContent: 'center' },
-        React.createElement(Text, { color: 'white', bold: true }, expr)
-      ),
-      React.createElement(Text, { color: color, bold: true }, '▄▄▄▄▄▄▄▄▄▄')
-    )
-  },
-  { 
-    name: 'STRIKE-FRAME', 
-    render: (color, expr) => React.createElement(
-      Box, { flexDirection: 'column', alignItems: 'center' },
-      React.createElement(Text, { color: color, bold: true }, ' ◢▇◣ '),
-      React.createElement(
-        Box, { borderStyle: 'single', borderColor: color, paddingX: 1, height: 3, alignItems: 'center', justifyContent: 'center' },
-        React.createElement(Text, { color: 'white', bold: true }, expr)
-      ),
-      React.createElement(Text, { color: color, bold: true }, ' ◥▇◤ ')
-    )
-  }
-];
-
-// --- (2) 顔モジュール ---
-const VISORS = ['◕ ◡ ◕', ' [=] ', ' <o> ', ' ═══ ', ' (x) ', ' ::: ', ' ◈ ◈ '];
+const COLORS = ['cyanBright', 'greenBright', 'magentaBright', 'yellowBright', 'redBright', 'white'];
+const FACES = ['( • ◡ • )', '( ◕ ◡ ◕ )', '( > ◡ < )', '( 🕶️ _ 🕶️ )', '( ◉ ▿ ◉ )'];
 
 /**
- * ギガ・カスタマイザー アプリケーション
+ * フルボディ・着せ替えエンジン (修正版)
  */
 const App = () => {
   const { exit } = useApp();
-  const [cIdx, setCIdx] = useState(0); // Chassis
-  const [vIdx, setVIdx] = useState(0); // Visor
-  const [aIdx, setAIdx] = useState(0); // Augment
-  const [colIdx, setColIdx] = useState(0); // Color
+  const [hIdx, setHIdx] = useState(0);
+  const [bIdx, setBIdx] = useState(0);
+  const [fIdx, setFIdx] = useState(0);
+  const [cIdx, setCIdx] = useState(0);
+  const [faceIdx, setFaceIdx] = useState(0);
 
   useInput((input) => {
     if (input === 'q') exit();
-    if (input === '1') setCIdx(p => (p + 1) % CHASSIS.length);
-    if (input === '2') setVIdx(p => (p + 1) % VISORS.length);
-    if (input === '3') setAIdx(p => (p + 1) % AUGMENTS.length);
-    if (input === '4') setColIdx(p => (p + 1) % COLORS.length);
+    if (input === '1') setHIdx(p => (p + 1) % HEADS.length);
+    if (input === '2') setBIdx(p => (p + 1) % BODIES.length);
+    if (input === '3') setFIdx(p => (p + 1) % FEET.length);
+    if (input === '4') setCIdx(p => (p + 1) % COLORS.length);
+    if (input === '5') setFaceIdx(p => (p + 1) % FACES.length);
   });
 
-  const activeColor = COLORS[colIdx];
-  const activeChassis = CHASSIS[cIdx];
-  const activeAug = AUGMENTS[aIdx];
+  const color = COLORS[cIdx];
+  const head = HEADS[hIdx];
+  const body = BODIES[bIdx];
+  const foot = FEET[fIdx];
 
   return React.createElement(
     Box,
-    { 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      borderStyle: 'single', 
-      padding: 1, 
-      width: 66, 
-      borderColor: 'gray' 
-    },
+    { flexDirection: 'column', alignItems: 'center', padding: 1, width: 60, borderStyle: 'double', borderColor: 'gray' },
     
-    // 現在の属性オーラ (カラー選択で変化)
     React.createElement(
-      Box, { marginBottom: 1, width: '100%', justifyContent: 'center' },
-      React.createElement(Text, { color: activeColor.val, bold: true, underline: true }, activeColor.aura)
+      Box, { marginBottom: 1 },
+      React.createElement(Text, { color: 'yellow', bold: true }, '✨ Gi育: フルボディ・カスタムスタジオ ✨')
     ),
 
-    // メインプレビューエリア (シルエットの変化を強調)
-    React.createElement(
-      Box,
-      { 
-        width: 60, 
-        height: 14, 
-        borderStyle: 'double', 
-        borderColor: activeColor.val, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        marginBottom: 1 
-      },
-      
-      React.createElement(
-        Box, { alignItems: 'center' },
-        // オーグメント左側 (巨大パーツ)
-        React.createElement(Text, { color: activeColor.val, bold: true }, activeAug.l),
-        
-        // シャーシ (中央)
-        React.createElement(
-          Box, { marginX: 2, minWidth: 10, justifyContent: 'center' },
-          activeChassis.render(activeColor.val, VISORS[vIdx])
-        ),
-
-        // オーグメント右側 (巨大パーツ)
-        React.createElement(Text, { color: activeColor.val, bold: true }, activeAug.r)
-      )
-    ),
-
-    // インタラクティブ・コントロールパネル
     React.createElement(
       Box,
       { 
         flexDirection: 'column', 
-        width: 60, 
-        borderStyle: 'round', 
-        borderColor: 'cyan', 
-        paddingX: 2 
+        alignItems: 'center', 
+        height: 12, 
+        justifyContent: 'center', 
+        borderStyle: 'round',
+        borderColor: 'dim',
+        width: 54,
+        marginBottom: 1
       },
-      [
-        { key: '1', label: 'CHASSIS (Base Structure)', val: activeChassis.name },
-        { key: '2', label: 'VISOR   (Face Module)  ', val: 'Variant ' + (vIdx + 1) },
-        { key: '3', label: 'AUGMENT (Mega-Armor)   ', val: activeAug.name, c: activeColor.val },
-        { key: '4', label: 'COLOR   (Aura Essence) ', val: activeColor.name, c: activeColor.val },
-      ].map(row => 
+      
+      // HEAD
+      head.render(color),
+
+      // BODY
+      React.createElement(
+        Box, { flexDirection: 'row', alignItems: 'center' },
+        body.l,
         React.createElement(
-          Box,
-          { key: row.key, justifyContent: 'space-between' },
-          React.createElement(Box, {}, 
-            React.createElement(Text, { color: 'cyan', bold: true }, `[${row.key}] `),
-            React.createElement(Text, { color: 'white' }, row.label)
+          Box, 
+          { 
+            borderStyle: 'round', 
+            borderColor: color, 
+            paddingX: body.px, 
+            paddingY: body.py,
+            minWidth: 10,
+            alignItems: 'center'
+          },
+          React.createElement(Text, { color: 'white', bold: true }, FACES[faceIdx])
+        ),
+        body.r
+      ),
+
+      // FEET
+      React.createElement(
+        Box, { marginTop: -1 }, 
+        React.createElement(Text, { color: color, bold: true }, foot.val)
+      )
+    ),
+
+    // 操作パネル
+    React.createElement(
+      Box, 
+      { flexDirection: 'column', width: 54, borderStyle: 'round', borderColor: 'cyan', paddingX: 2 },
+      [
+        { k: '1', l: 'HEAD-GEAR ', v: head.name },
+        { k: '2', l: 'BODY-SUIT ', v: body.name },
+        { k: '3', l: 'FOOT-WEAR ', v: foot.name },
+        { k: '4', l: 'BASE-COLOR', v: color, c: color },
+        { k: '5', l: 'FACE-EXPR ', v: 'Expression ' + (faceIdx + 1) },
+      ].map(r => 
+        React.createElement(
+          Box, { key: r.k, justifyContent: 'space-between' },
+          React.createElement(
+            Box, {},
+            React.createElement(Text, { color: 'cyan', bold: true }, `[${r.k}] `),
+            React.createElement(Text, { color: 'white' }, r.l)
           ),
-          React.createElement(Text, { color: row.c || 'gray', bold: !!row.c }, row.val)
+          React.createElement(Text, { color: r.c || 'gray', bold: !!r.c }, r.v)
         )
       ),
-      
-      // 保存・終了ボタン
       React.createElement(
-        Box,
-        { justifyContent: 'center', marginTop: 1, borderStyle: 'bold', borderColor: 'red', paddingX: 3 },
-        React.createElement(Text, { color: 'redBright', bold: true }, ' [q] SAVE CONFIGURATION ')
+        Box, { justifyContent: 'center', marginTop: 1 },
+        React.createElement(Text, { dimColor: true }, 'Press [q] to exit')
       )
     )
   );
