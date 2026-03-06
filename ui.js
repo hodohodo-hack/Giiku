@@ -1,147 +1,179 @@
 import React, { useState } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
 
-// --- カスタマイズ用のデータセット ---
-const COLORS = ['cyanBright', 'greenBright', 'magentaBright', 'yellowBright', 'redBright', 'white'];
-const EXPRESSIONS = ['◕ ◡ ◕', 'o _ o', '> _ <', '^ _ ^', '(◡‿◡)', '● ▿ ●', '◉ ▿ ◉'];
-const ACCESSORIES = ['👑', '🎩', '🎀', '⚔️', '🍀', '🐱', '🕶️', '🎓', '🎁'];
+// --- (3) メガ・オーグメント (巨大な外部パーツ) ---
+const AUGMENTS = [
+  { name: 'NONE', l: '      ', r: '      ' },
+  { 
+    name: 'GIGA-WINGS', 
+    l: '  ◢█\n  ██\n  ◥█', 
+    r: '█◣\n██\n█◤' 
+  },
+  { 
+    name: 'MEGA-SHIELDS', 
+    l: '┏━━┓\n┃  ┃\n┗━━┛', 
+    r: '┏━━┓\n┃  ┃\n┗━━┛' 
+  },
+  { 
+    name: 'ORBITAL-CORES', 
+    l: ' ( ◯ )\n      \n ( ◯ )', 
+    r: '( ◯ )\n     \n( ◯ )' 
+  },
+  { 
+    name: 'THRUSTER-PACK', 
+    l: ' ◢◤ \n◢◤  \n◥◣  ', 
+    r: ' ◥◣ \n  ◥◣\n  ◢◤' 
+  }
+];
 
-/**
- * スライムコンポーネント
- */
-const Slime = ({ bodyColor, expression, accessory, showAccessory }) => {
-  return React.createElement(
-    Box,
-    { flexDirection: 'column', alignItems: 'center', paddingY: 1 },
-    
-    // 1. アクセサリー（頭の上）
-    // 重ね合わせを止めて、高さを1行固定にすることで確実に表示させます
-    React.createElement(
-      Box, 
-      { height: 1, justifyContent: 'center', marginBottom: 0 }, 
-      React.createElement(Text, {}, showAccessory ? accessory : ' ')
-    ),
+// --- (4) カラー・オーラ (属性と全体の雰囲気) ---
+const COLORS = [
+  { name: 'NEON-CYAN',  val: 'cyanBright',    aura: '⚡  NEON-STORM  ⚡' },
+  { name: 'HELL-FIRE',  val: 'redBright',     aura: '🔥  INFERNO-MODE  🔥' },
+  { name: 'BIO-HAZARD', val: 'greenBright',   aura: '🌿  TOXIC-PULSE  🌿' },
+  { name: 'SUN-LIGHT',  val: 'yellowBright',  aura: '✨  SOLAR-FLARE  ✨' },
+  { name: 'VOID-GHOST', val: 'white',         aura: '☁️  ECHO-GHOST  ☁️' },
+  { name: 'DEEP-SEA',   val: 'blueBright',    aura: '🌊  TIDAL-FORCE  🌊' },
+  { name: 'DARK-EYE',   val: 'magentaBright', aura: '👁️  PSYCHO-VOID  👁️' },
+];
 
-    // 2. 体（丸みのある枠線）
-    React.createElement(
-      Box,
-      {
-        flexDirection: 'column',
-        alignItems: 'center',
-        paddingX: 1,
-        borderStyle: 'round', 
-        borderColor: bodyColor,
-      },
-      // 3. 表情
-      React.createElement(
-        Text, 
-        { color: 'white', bold: true }, 
-        expression
-      )
-    ),
-
-    // 4. 足元の装飾
-    React.createElement(
-      Text,
-      { color: bodyColor, dimColor: true },
-      '  "  "  '
+// --- (1) シャーシ (骨格) ---
+const CHASSIS = [
+  { 
+    name: 'CORE-SHELL', 
+    render: (color, expr) => React.createElement(
+      Box, { borderStyle: 'round', borderColor: color, paddingX: 2, height: 3, alignItems: 'center', justifyContent: 'center' },
+      React.createElement(Text, { color: 'white', bold: true }, expr)
     )
-  );
-};
+  },
+  { 
+    name: 'TITAN-TANK', 
+    render: (color, expr) => React.createElement(
+      Box, { flexDirection: 'column', alignItems: 'center' },
+      React.createElement(
+        Box, { borderStyle: 'bold', borderColor: color, paddingX: 3, height: 3, alignItems: 'center', justifyContent: 'center' },
+        React.createElement(Text, { color: 'white', bold: true }, expr)
+      ),
+      React.createElement(Text, { color: color, bold: true }, '▄▄▄▄▄▄▄▄▄▄')
+    )
+  },
+  { 
+    name: 'STRIKE-FRAME', 
+    render: (color, expr) => React.createElement(
+      Box, { flexDirection: 'column', alignItems: 'center' },
+      React.createElement(Text, { color: color, bold: true }, ' ◢▇◣ '),
+      React.createElement(
+        Box, { borderStyle: 'single', borderColor: color, paddingX: 1, height: 3, alignItems: 'center', justifyContent: 'center' },
+        React.createElement(Text, { color: 'white', bold: true }, expr)
+      ),
+      React.createElement(Text, { color: color, bold: true }, ' ◥▇◤ ')
+    )
+  }
+];
+
+// --- (2) 顔モジュール ---
+const VISORS = ['◕ ◡ ◕', ' [=] ', ' <o> ', ' ═══ ', ' (x) ', ' ::: ', ' ◈ ◈ '];
 
 /**
- * メインアプリケーション（インタラクティブ版）
+ * ギガ・カスタマイザー アプリケーション
  */
 const App = () => {
   const { exit } = useApp();
-  const [colorIdx, setColorIdx] = useState(0);
-  const [exprIdx, setExprIdx] = useState(0);
-  const [accIdx, setAccIdx] = useState(0);
-  const [showAcc, setShowAcc] = useState(true);
+  const [cIdx, setCIdx] = useState(0); // Chassis
+  const [vIdx, setVIdx] = useState(0); // Visor
+  const [aIdx, setAIdx] = useState(0); // Augment
+  const [colIdx, setColIdx] = useState(0); // Color
 
-  // キーボード入力を監視
-  useInput((input, key) => {
-    if (input === 'q' || key.escape) {
-      exit();
-    }
-    // 数字キーの入力を確実に拾う
-    if (input === '1') {
-      setColorIdx((prev) => (prev + 1) % COLORS.length);
-    }
-    if (input === '2') {
-      setExprIdx((prev) => (prev + 1) % EXPRESSIONS.length);
-    }
-    if (input === '3') {
-      // インデックスを回す。もし最後なら一旦「なし」の状態（showAccをfalseにするなど）を作ることも可能ですが
-      // ここではシンプルに配列を回します。
-      setAccIdx((prev) => (prev + 1) % ACCESSORIES.length);
-      setShowAcc(true);
-    }
-    if (input === '0') {
-      setShowAcc((prev) => !prev);
-    }
+  useInput((input) => {
+    if (input === 'q') exit();
+    if (input === '1') setCIdx(p => (p + 1) % CHASSIS.length);
+    if (input === '2') setVIdx(p => (p + 1) % VISORS.length);
+    if (input === '3') setAIdx(p => (p + 1) % AUGMENTS.length);
+    if (input === '4') setColIdx(p => (p + 1) % COLORS.length);
   });
+
+  const activeColor = COLORS[colIdx];
+  const activeChassis = CHASSIS[cIdx];
+  const activeAug = AUGMENTS[aIdx];
 
   return React.createElement(
     Box,
     { 
       flexDirection: 'column', 
       alignItems: 'center', 
-      borderStyle: 'double', 
+      borderStyle: 'single', 
       padding: 1, 
-      width: 48,
-      borderColor: 'white'
+      width: 66, 
+      borderColor: 'gray' 
     },
     
-    // ヘッダー
+    // 現在の属性オーラ (カラー選択で変化)
     React.createElement(
-      Box,
-      { marginBottom: 1 },
-      React.createElement(Text, { color: 'yellow', bold: true }, '✨ Gi育: ぷるぷるカスタムルーム ✨')
+      Box, { marginBottom: 1, width: '100%', justifyContent: 'center' },
+      React.createElement(Text, { color: activeColor.val, bold: true, underline: true }, activeColor.aura)
     ),
 
-    // メインのキャラクター表示
-    React.createElement(Slime, {
-      bodyColor: COLORS[colorIdx],
-      expression: EXPRESSIONS[exprIdx],
-      accessory: ACCESSORIES[accIdx],
-      showAccessory: showAcc
-    }),
-
-    // ステータス表示
+    // メインプレビューエリア (シルエットの変化を強調)
     React.createElement(
       Box,
-      { marginTop: 1, marginBottom: 1 },
+      { 
+        width: 60, 
+        height: 14, 
+        borderStyle: 'double', 
+        borderColor: activeColor.val, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        marginBottom: 1 
+      },
+      
       React.createElement(
-        Text, 
-        { color: 'gray' }, 
-        `Color: ${colorIdx + 1} | Expr: ${exprIdx + 1} | Acc: ${accIdx + 1} (${showAcc ? 'ON' : 'OFF'})`
+        Box, { alignItems: 'center' },
+        // オーグメント左側 (巨大パーツ)
+        React.createElement(Text, { color: activeColor.val, bold: true }, activeAug.l),
+        
+        // シャーシ (中央)
+        React.createElement(
+          Box, { marginX: 2, minWidth: 10, justifyContent: 'center' },
+          activeChassis.render(activeColor.val, VISORS[vIdx])
+        ),
+
+        // オーグメント右側 (巨大パーツ)
+        React.createElement(Text, { color: activeColor.val, bold: true }, activeAug.r)
       )
     ),
 
-    // 操作説明ガイド
+    // インタラクティブ・コントロールパネル
     React.createElement(
       Box,
       { 
         flexDirection: 'column', 
-        borderStyle: 'single', 
-        paddingX: 1, 
-        borderColor: 'cyan',
-        width: 42
+        width: 60, 
+        borderStyle: 'round', 
+        borderColor: 'cyan', 
+        paddingX: 2 
       },
       [
-        ['1', '体の色をかえる'],
-        ['2', '表情をかえる'],
-        ['3', 'アクセサリーをかえる'],
-        ['0', 'アクセサリーの ON/OFF'],
-        ['q', '終了して保存 (仮)']
-      ].map(([key, label]) => 
+        { key: '1', label: 'CHASSIS (Base Structure)', val: activeChassis.name },
+        { key: '2', label: 'VISOR   (Face Module)  ', val: 'Variant ' + (vIdx + 1) },
+        { key: '3', label: 'AUGMENT (Mega-Armor)   ', val: activeAug.name, c: activeColor.val },
+        { key: '4', label: 'COLOR   (Aura Essence) ', val: activeColor.name, c: activeColor.val },
+      ].map(row => 
         React.createElement(
           Box,
-          { key, justifyContent: 'space-between' },
-          React.createElement(Text, { bold: true, color: 'white' }, ` [${key}]`),
-          React.createElement(Text, {}, ` ${label}`)
+          { key: row.key, justifyContent: 'space-between' },
+          React.createElement(Box, {}, 
+            React.createElement(Text, { color: 'cyan', bold: true }, `[${row.key}] `),
+            React.createElement(Text, { color: 'white' }, row.label)
+          ),
+          React.createElement(Text, { color: row.c || 'gray', bold: !!row.c }, row.val)
         )
+      ),
+      
+      // 保存・終了ボタン
+      React.createElement(
+        Box,
+        { justifyContent: 'center', marginTop: 1, borderStyle: 'bold', borderColor: 'red', paddingX: 3 },
+        React.createElement(Text, { color: 'redBright', bold: true }, ' [q] SAVE CONFIGURATION ')
       )
     )
   );
