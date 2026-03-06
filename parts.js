@@ -1,6 +1,7 @@
 /**
- * ベース固有パーツ定義 (v7.0)
- * 各ベースキャラクターが自分専用のパーツリストを持ちます。
+ * 種族固有パーツ定義 (復元版 v10.0)
+ * 各種族のコンセプトに忠実なパーツのみを収録。
+ * すべて幾何学ブロックで構成し、安っぽさを排除しています。
  */
 
 export const BASES = [
@@ -8,75 +9,138 @@ export const BASES = [
     id: 'slime',
     name: 'SLIME-GENUS',
     color: 'cyanBright',
-    desc: '弾力性のある電脳生物。形態変化に富む。',
+    desc: '魔法の雫から生まれた生命体。粘性の高い体を持つ。',
     heads: [
-      { name: 'STANDARD', pixels: ['              '] },
-      { name: 'ROYAL-CROWN', pixels: ['  █  █  █   ', '  ███████   '] },
-      { name: 'WITCH-HOOD', pixels: ['    ◢██◣      ', '   ◢████◣     ', '  ━━━━━━━    '] }
+      { name: 'DROP-POINT', pixels: ['      ◢◣      ', '    ◢██◣    '] },
+      { name: 'WITCH-HOOD',  pixels: ['     ◢█◣     ', '   ◢███◣    ', ' ◢███████◣  '] },
+      { name: 'CROWN-DOTS', pixels: ['  ■  ■  ■   ', '  ███████   '] }
     ],
     bodies: [
-      { name: 'SLIME-CORE', pixels: ['  ◢████◣    ', '◢██      ██◣', '██  ■  ■  ██', '◥████████◤  '] },
-      { name: 'FLUID-WRAPPED', pixels: ['  ◢▇▇▇▇◣    ', '◢▇      ▇▇◣', '▇▇  ■  ■  ▇▇', '◥▇▇▇▇▇▇▇▇◤  '] }
+      { 
+        name: 'JIGGLY-BODY', 
+        pixels: [
+          '  ◢██████◣  ', 
+          '◢██  ■  ■  ██◣', 
+          '██    ▄▄    ██',
+          '◥████████◤  '
+        ] 
+      },
+      { 
+        name: 'SQUARE-BODY', 
+        pixels: [
+          ' ◢████████◣ ', 
+          ' ██  ■  ■  ██ ', 
+          ' ██   ■■   ██ ',
+          ' ◥████████◤ '
+        ] 
+      }
     ],
     feet: [
-      { name: 'TENTACLES', pixels: ['    v v v   ', '     v v     '] },
-      { name: 'FLUID-DROP', pixels: ['     ◢◣     ', '     ◥◤     '] }
+      { name: 'FLUID-BASE', pixels: [' ◢████████◣ ', ' ◥████████◤ '] },
+      { name: 'TRIPLE-DRIP', pixels: ['  ◢█◣ ◢█◣ ◢█◣ ', '  ◥◤  ◥◤  ◥◤  '] },
+      { name: 'TINY-STUB',  pixels: ['    ◢◣  ◢◣    '] }
     ]
   },
   {
     id: 'mecha',
     name: 'MECHA-GENUS',
     color: 'redBright',
-    desc: '堅牢な装甲を持つ戦闘ドロイド。高出力が特徴。',
+    desc: '堅牢な特殊合金で組まれた機体。放熱板を備える。',
     heads: [
-      { name: 'SENSOR-EYE', pixels: ['      █      ', '    ◢███◣    '] },
-      { name: 'COMMAND-HORN', pixels: ['    ◢▇▇▇    ', '   ◢████    '] },
-      { name: 'VALKYRIE-FIN', pixels: [' ◢◣      ◢◣ ', ' ◥████████◤ '] }
+      { name: 'ANTENNA-S',  pixels: ['      █      ', '    ◢███◣    '] },
+      { name: 'HEAVY-HORN', pixels: ['  ◢█    █◣  ', '  ████████  '] },
+      { name: 'VISOR-UNIT', pixels: [' ◢████████◣ ', ' ◥████████◤ '] }
     ],
     bodies: [
-      { name: 'PLATE-ARMOR', pixels: [' ◢██████◣   ', ' ██████████ ', ' ██  ■■  ██ ', ' ◥████████◤ '] },
-      { name: 'BOLTED-FRAME', pixels: [' ┏━━━━━━┓   ', ' ┃  ■  ■ ┃   ', ' ┃       ┃   ', ' ┗━━━━━━┛   '] }
+      { 
+        name: 'PLATE-ARMOR', 
+        pixels: [
+          ' ◢████████◣ ', 
+          ' █  ■    ■  █ ', 
+          ' █    ▀▀    █ ',
+          ' ◥████████◤ '
+        ] 
+      },
+      { 
+        name: 'CORE-REACTOR', 
+        pixels: [
+          ' ◢██▇▇▇▇██◣ ', 
+          ' █▇  ■  ■  ▇█ ', 
+          ' █▇   ▄▄   ▇█ ',
+          ' ◥██▇▇▇▇██◤ '
+        ] 
+      }
     ],
     feet: [
-      { name: 'TANK-TREAD', pixels: ['  ▆▆▆▆▆▆▆▆  '] },
-      { name: 'HYDRAULIC', pixels: ['   ▰▰  ▰▰   '] },
-      { name: 'BOOSTER', pixels: ['    ▲  ▲    ', '    v  v    '] }
+      { name: 'CRAWLER',   pixels: [' ▆▆▆▆▆▆▆▆▆▆ ', ' ◥████████◤ '] },
+      { name: 'HYDRAULIC', pixels: ['   ▰▰    ▰▰   ', '   ◥█    █◤   '] },
+      { name: 'THRUSTER',  pixels: ['    ◢▇▇◣    ', '    ◥▆▆◤    '] }
     ]
   },
   {
     id: 'phantom',
     name: 'GHOST-GENUS',
     color: 'magentaBright',
-    desc: '次元の狭間に住む生命体。物理攻撃が効かない。',
+    desc: '実体を持たないエネルギーの残滓。空間を歪める。',
     heads: [
-      { name: 'HALO-RING', pixels: ['    .---.    ', '   (     )   '] },
-      { name: 'VOID-FLAME', pixels: ['     ◢◣     ', '    ◢██◣    ', '    ◥██◤    '] }
+      { name: 'BLOCK-HALO', pixels: ['   ◢▇▇▇▇◣   ', '   ◥▇▇▇▇◤   '] },
+      { name: 'VOID-FLAME', pixels: ['      ◢◣      ', '     ◢██◣     ', '     ◥██◤     '] }
     ],
     bodies: [
-      { name: 'ENERGY-WRAPS', pixels: ['   ◢▇▇▇◣    ', '  ◢█ ■ ■ █◣  ', '  ████████  ', '   ◥▇▇▇▇◤   '] },
-      { name: 'ETHEREAL-CORE', pixels: ['    ◢██◣    ', '  ◢█ ■ █◣  ', '    ◥██◤    '] }
+      { 
+        name: 'WISP-CORE', 
+        pixels: [
+          '    ◢██◣    ', 
+          '  ◢█ ■  ■ █◣  ', 
+          '  ██  ▄▄  ██  ', 
+          '    ◥██◤    '
+        ] 
+      },
+      { 
+        name: 'MIST-WRAP', 
+        pixels: [
+          '   ◢▇▇▇▇◣   ', 
+          '  ◢▇ ■  ■ ▇◣  ', 
+          '  ◥▇  ■■  ▇◤  '
+        ] 
+      }
     ],
     feet: [
-      { name: 'MIST-TAIL', pixels: ['     v v     ', '      v      '] },
-      { name: 'WAVE-FORM', pixels: ['  ~ ~ ~ ~ ~  '] }
+      { name: 'GHOST-TAIL', pixels: ['    ◥████◤    ', '     ◥██◤     ', '      ◥◤      '] },
+      { name: 'WAVE-BOTTOM', pixels: [' ◥◣◢◤◥◣◢◤◥◣ ', '  ◥◤  ◥◤  ◥◤ '] }
     ]
   },
   {
     id: 'forest',
     name: 'PLANT-GENUS',
     color: 'greenBright',
-    desc: '植物と機械が共生するドロイド。自己修復が可能。',
+    desc: '森の守護者。季節によってその姿を変える。',
     heads: [
-      { name: 'SPROUT', pixels: ['      🌱      ', '      █      '] },
-      { name: 'FLOWER', pixels: ['    ◢█◣     ', '    ◥█◤     '] }
+      { name: 'DUAL-LEAF', pixels: ['  ◢◣      ◢◣ ', '  ◥██◣  ◢██◤ '] },
+      { name: 'THORN-CROWN', pixels: ['  ◢◣  ◢◣  ◢◣ ', '  ◥██████◤  '] }
     ],
     bodies: [
-      { name: 'VINE-CORE', pixels: ['  ◢████◣    ', ' ███  ███   ', '  ◥████◤    '] },
-      { name: 'WOODEN-SHELL', pixels: ['  ◢▇▇▇▇◣    ', ' ▇▇ ■  ■ ▇▇  ', '  ◥▇▇▇▇◤    '] }
+      { 
+        name: 'LOG-CHEST', 
+        pixels: [
+          '  ◢██████◣  ', 
+          ' ███ ■  ■ ███ ', 
+          ' ███  ■■  ███ ', 
+          '  ◥██████◤  '
+        ] 
+      },
+      { 
+        name: 'VINE-BODY', 
+        pixels: [
+          '   ◢▇▇▇▇◣   ', 
+          ' ◢▇▇ ■  ■ ▇▇◣ ', 
+          '  ◥▇  ▄▄  ▇◤  '
+        ] 
+      }
     ],
     feet: [
-      { name: 'ROOTS', pixels: ['    █  █    ', '   ◢█  █◣   '] },
-      { name: 'LEAF-PAD', pixels: ['  ◢▇◣◢▇◣  '] }
+      { name: 'ROOT-BASE', pixels: ['    █    █    ', '   ◢█◣  ◢█◣   '] },
+      { name: 'WIDE-LEAF', pixels: ['  ◢██◣  ◢██◣  ', '  ◥██◤  ◥██◤  '] }
     ]
   }
 ];
