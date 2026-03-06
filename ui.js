@@ -1,100 +1,137 @@
 import React, { useState } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
-import { HEADS, BODIES, FEET, COLORS } from './parts.js';
+import { BASES, COLORS } from './parts.js';
 
 /**
- * カスタム・ピクセル・スタジオ
- * HEAD, BODY, FEET の各パーツを独立して組み替えられます。
+ * 究極のカスタム・ピクセル・スタジオ
+ * ベース種族を切り替えると、その種族専用のパーツがアンロックされます。
  */
 const App = () => {
   const { exit } = useApp();
   
-  // 各部位のインデックスを管理
-  const [hIdx, setHIdx] = useState(0);
-  const [bIdx, setBIdx] = useState(0);
-  const [fIdx, setFIdx] = useState(0);
-  const [cIdx, setCIdx] = useState(0);
+  // 状態管理
+  const [bIdx, setBIdx] = useState(0); // ベース (左右キー)
+  const [hIdx, setHIdx] = useState(0); // 専用頭パーツ (1キー)
+  const [bodyIdx, setBodyIdx] = useState(0); // 専用胴パーツ (2キー)
+  const [fIdx, setFIdx] = useState(0); // 専用足パーツ (3キー)
+  const [cIdx, setCIdx] = useState(0); // カラー (4キー)
 
-  // キー入力処理: 1(頭), 2(体), 3(足), 4(色) をサイクル
-  useInput((input) => {
+  // ベース切り替え時のリセット処理
+  const switchBase = (newIdx) => {
+    setBIdx(newIdx);
+    setHIdx(0);
+    setBodyIdx(0);
+    setFIdx(0);
+    // 色はベースのデフォルト色に合わせる (任意)
+    const baseColorIdx = COLORS.indexOf(BASES[newIdx].color);
+    if (baseColorIdx !== -1) setCIdx(baseColorIdx);
+  };
+
+  // キー入力
+  useInput((input, key) => {
     if (input === 'q') exit();
-    if (input === '1') setHIdx(p => (p + 1) % HEADS.length);
-    if (input === '2') setBIdx(p => (p + 1) % BODIES.length);
-    if (input === '3') setFIdx(p => (p + 1) % FEET.length);
+    
+    const base = BASES[bIdx];
+
+    // ベース(種族)切り替え
+    if (key.rightArrow) switchBase((bIdx + 1) % BASES.length);
+    if (key.leftArrow) switchBase((bIdx - 1 + BASES.length) % BASES.length);
+    
+    // パーツ個別調整 (現在のベース内の配列から選択)
+    if (input === '1') setHIdx(p => (p + 1) % base.heads.length);
+    if (input === '2') setBodyIdx(p => (p + 1) % base.bodies.length);
+    if (input === '3') setFIdx(p => (p + 1) % base.feet.length);
     if (input === '4') setCIdx(p => (p + 1) % COLORS.length);
   });
 
-  const color = COLORS[cIdx];
+  const base = BASES[bIdx];
+  const activeColor = COLORS[cIdx];
+
+  // 現在選択中の各パーツデータ
+  const currentHead = base.heads[hIdx];
+  const currentBody = base.bodies[bodyIdx];
+  const currentFeet = base.feet[fIdx];
 
   return React.createElement(
     Box, 
     { 
       flexDirection: 'column', 
       alignItems: 'center', 
-      padding: 2, 
-      width: 60, 
-      borderStyle: 'single', 
+      padding: 1, 
+      width: 66, 
+      borderStyle: 'double', 
       borderColor: 'gray' 
     },
     
-    // キャラクター表示エリア
-    // 各パーツの pixels 配列を順番に描画して一つのキャラにする
+    // ヘッダー: 種族ナビゲーション
     React.createElement(
       Box, 
-      { 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        height: 14, 
-        justifyContent: 'center', 
-        marginBottom: 1 
-      },
-      // 1. HEAD
-      HEADS[hIdx].pixels.map((line, i) => 
-        React.createElement(Text, { key: `h-${i}`, color, bold: true }, line)
+      { width: 60, justifyContent: 'space-between', marginBottom: 1 },
+      React.createElement(Text, { color: 'gray' }, '◀ PREV GENUS'),
+      React.createElement(
+        Box, { flexDirection: 'row' },
+        BASES.map((_, i) => 
+          React.createElement(Text, { key: i, color: i === bIdx ? activeColor : 'gray' }, i === bIdx ? ' ◈ ' : ' ◇ ')
+        )
       ),
-      // 2. BODY
-      BODIES[bIdx].pixels.map((line, i) => 
-        React.createElement(Text, { key: `b-${i}`, color, bold: true }, line)
+      React.createElement(Text, { color: 'gray' }, 'NEXT GENUS ▶')
+    ),
+
+    // メインコンテンツエリア
+    React.createElement(
+      Box,
+      { flexDirection: 'row', width: 60, height: 15, borderStyle: 'round', borderColor: activeColor, paddingX: 2, alignItems: 'center' },
+      
+      // 左側: キャラクター表示 (専用パーツの組み合わせ)
+      React.createElement(
+        Box, 
+        { flexDirection: 'column', alignItems: 'center', width: 26, justifyContent: 'center' },
+        currentHead.pixels.map((l, i) => React.createElement(Text, { key: `h-${i}`, color: activeColor, bold: true }, l)),
+        currentBody.pixels.map((l, i) => React.createElement(Text, { key: `b-${i}`, color: activeColor, bold: true }, l)),
+        currentFeet.pixels.map((l, i) => React.createElement(Text, { key: `f-${i}`, color: activeColor, bold: true }, l))
       ),
-      // 3. FEET
-      FEET[fIdx].pixels.map((line, i) => 
-        React.createElement(Text, { key: `f-${i}`, color, bold: true }, line)
+
+      // 中央仕切り
+      React.createElement(Text, { color: 'gray', dimColor: true }, ' │ '),
+
+      // 右側: ステータス表示
+      React.createElement(
+        Box,
+        { flexDirection: 'column', paddingLeft: 2, flexGrow: 1 },
+        React.createElement(Text, { color: activeColor, bold: true, invert: true }, `  ${base.name}  `),
+        React.createElement(Box, { marginTop: 1, height: 4 },
+          React.createElement(Text, { color: 'white', dimColor: true }, base.desc)
+        ),
+        React.createElement(
+          Box, { flexDirection: 'column' },
+          React.createElement(Text, { color: 'yellow' }, `[1] HEAD: ${currentHead.name}`),
+          React.createElement(Text, { color: 'yellow' }, `[2] BODY: ${currentBody.name}`),
+          React.createElement(Text, { color: 'yellow' }, `[3] FEET: ${currentFeet.name}`)
+        )
       )
     ),
 
-    // カスタマイズ・コントロールパネル
+    // 操作説明パネル
     React.createElement(
       Box, 
       { 
-        flexDirection: 'column', 
-        width: 48, 
-        borderStyle: 'round', 
+        flexDirection: 'row', 
+        width: 60, 
+        marginTop: 1, 
+        borderStyle: 'single', 
         borderColor: 'cyan', 
-        paddingX: 2 
+        paddingX: 1,
+        justifyContent: 'space-around'
       },
-      [
-        { key: '1', label: 'HEAD  (帽子/角) ', val: HEADS[hIdx].name },
-        { key: '2', label: 'BODY  (胴体)    ', val: BODIES[bIdx].name },
-        { key: '3', label: 'FEET  (足元)    ', val: FEET[fIdx].name },
-        { key: '4', label: 'COLOR (メイン)  ', val: color, c: color },
-      ].map(item => 
-        React.createElement(
-          Box, 
-          { key: item.key, justifyContent: 'space-between' },
-          React.createElement(
-            Box, {},
-            React.createElement(Text, { color: 'cyan', bold: true }, `[${item.key}] `),
-            React.createElement(Text, { color: 'white' }, item.label)
-          ),
-          React.createElement(Text, { color: item.c || 'gray', bold: !!item.c }, item.val)
-        )
-      ),
-      
-      // フッター
-      React.createElement(
-        Box, { justifyContent: 'center', marginTop: 1 },
-        React.createElement(Text, { dimColor: true }, 'Press [q] to exit studio')
-      )
+      React.createElement(Text, {}, '[1-3] Parts'),
+      React.createElement(Text, { color: activeColor }, '[4] Theme'),
+      React.createElement(Text, { color: 'red' }, '[q] Quit')
+    ),
+
+    // フッター
+    React.createElement(
+      Box, { marginTop: 1 },
+      React.createElement(Text, { color: 'gray', dimColor: true }, 'Arrows: Switch Genus | Numbers: Genus-Specific Customize')
     )
   );
 };
