@@ -5,8 +5,9 @@ export class ConfStateStore {
         this.config = new Conf({
             projectName: 'giiku-tui',
             defaults: {
-                condition: { satiety: 80, luster: 50, intellect: 30 },
+                condition: { satiety: 80, luster: 50 },
                 totalCommits: 0,
+                todayCommits: 0,
                 lastUpdate: new Date().toISOString(),
                 currentSkinId: 'slime',
                 daysActive: 1,

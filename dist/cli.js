@@ -57,7 +57,7 @@ const main = () => {
         if (cmd === '--status-line') {
             const state = engine.getState();
             const title = state.titles[0] || (lang === 'ja' ? '新米' : 'Novice');
-            console.log(t.statusLine(state.condition.satiety, state.condition.luster, state.condition.intellect, title));
+            console.log(t.statusLine(state.condition.satiety, state.condition.luster, title));
             process.exit(0);
         }
         if (cmd === '--hook') {

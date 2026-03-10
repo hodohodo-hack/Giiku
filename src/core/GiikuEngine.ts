@@ -47,14 +47,6 @@ export class GiikuEngine {
       condition.luster = Math.min(100, condition.luster + 15);
       actionMessage = '✨ ツヤが出た！ (Luster UP)';
       history.lastPushTime = new Date().toISOString();
-
-    } else if (command === 'status' || command === 'diff' || command === 'log') {
-      condition.intellect = Math.min(100, condition.intellect + 5);
-      if (condition.intellect > 90) {
-        actionMessage = '📚 状況を深く理解しているようだ。 (Intellect UP)';
-      } else {
-        actionMessage = '💡 状況を確認した。(Intellect UP)';
-      }
     }
 
     // 称号の再評価
@@ -108,6 +100,7 @@ export class GiikuEngine {
     const updatedState: GiikuState = {
       ...currentState,
       totalCommits: stats.totalCommits,
+      todayCommits: stats.todayCommits,
       lastUpdate: new Date().toISOString(),
       daysActive,
       condition: {

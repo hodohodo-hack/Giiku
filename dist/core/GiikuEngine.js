@@ -38,15 +38,6 @@ export class GiikuEngine {
             actionMessage = '✨ ツヤが出た！ (Luster UP)';
             history.lastPushTime = new Date().toISOString();
         }
-        else if (command === 'status' || command === 'diff' || command === 'log') {
-            condition.intellect = Math.min(100, condition.intellect + 5);
-            if (condition.intellect > 90) {
-                actionMessage = '📚 状況を深く理解しているようだ。 (Intellect UP)';
-            }
-            else {
-                actionMessage = '💡 状況を確認した。(Intellect UP)';
-            }
-        }
         // 称号の再評価
         const newTitles = this.titleEngine.evaluateTitles(currentState, command);
         const updatedState = {
@@ -88,6 +79,7 @@ export class GiikuEngine {
         const updatedState = {
             ...currentState,
             totalCommits: stats.totalCommits,
+            todayCommits: stats.todayCommits,
             lastUpdate: new Date().toISOString(),
             daysActive,
             condition: {

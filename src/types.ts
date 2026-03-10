@@ -5,7 +5,6 @@ export type Language = 'en' | 'ja';
 export interface Condition {
   satiety: number;
   luster: number;
-  intellect: number;
 }
 
 export interface ActionHistory {
@@ -19,12 +18,13 @@ export interface ActionHistory {
 export interface GiikuState {
   condition: Condition;
   totalCommits: number;
+  todayCommits: number; // Added
   lastUpdate: string;
   currentSkinId: string;
   daysActive: number;
   titles: string[];
   history: ActionHistory;
-  language: Language; // Added language
+  language: Language;
 }
 
 export interface IGitStats {

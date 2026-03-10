@@ -28,10 +28,12 @@ export const App: React.FC<AppProps> = ({ state, renderer, userName }) => {
           <Text color="yellow" bold>{t.status}</Text>
           <Text>  {t.satiety}: {state.condition.satiety}%</Text>
           <Text>  {t.luster}:  {state.condition.luster}%</Text>
-          <Text>  {t.intellect}: {state.condition.intellect}%</Text>
           
           <Box marginTop={1}>
             <Text color="white" dimColor>{t.totalCommits}: {state.totalCommits}</Text>
+          </Box>
+          <Box>
+            <Text color="white" dimColor>{t.todayCommits}: {state.todayCommits}</Text>
           </Box>
           <Box>
             <Text color="white" dimColor>{t.activeDays}:   {state.daysActive}</Text>
