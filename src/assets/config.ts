@@ -23,6 +23,13 @@ export const GIIKU_CONFIG = {
     DEBUG: {
       DECREASE_AMOUNT: 20,
     }
-  }
+  },
+
+  // --- UI レイアウト (UI Layout) ---
+  UI: {
+    CHARACTER_FRAME_HEIGHT: 12, // キャラクター表示エリアの固定高さ (行数)
+    CHARACTER_FRAME_WIDTH: 30,  // キャラクター表示エリアの固定幅
+  },
+
   // 称号設定は src/assets/titles/ 配下に移動しました
 };

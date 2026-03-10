@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { GiikuState, ICharacterRenderer } from '../types.js';
 import { translations } from '../assets/translations.js';
+import { GIIKU_CONFIG } from '../assets/config.js';
 
 interface CommitReactionProps {
   state: GiikuState;
@@ -21,7 +22,11 @@ export const CommitReaction: React.FC<CommitReactionProps> = ({ state, renderer,
       </Box>
 
       <Box flexDirection="row" alignItems="center">
-        <Box width={30} justifyContent="center">
+        <Box 
+          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH} 
+          height={GIIKU_CONFIG.UI.CHARACTER_FRAME_HEIGHT} 
+          justifyContent="center"
+        >
           {renderer.render(state)}
         </Box>
 

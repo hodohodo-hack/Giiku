@@ -9,7 +9,7 @@ export const PhantomSkin: SkinDefinition = {
     ja: '実体を持たないエネルギーの残滓。空間を歪める。'
   },
   heads: [{ name: 'HALO', pixels: ['   ◢▇▇▇▇◣   ', '   ◥▇▇▇▇◤   '] }],
-  bodies: [{ name: 'CORE', pixels: ['    ◢██◣    ', '  ◢█ ■  ■ █◣  ', '  ██  ▄▄  ██  ', '    ◥██◤    '] }],
+  bodies: [{ name: 'CORE', pixels: ['    ◢██◣    ', '  ◢█ ■  ■ █◣  ', '  ██  ▄▄  ██  '] }],
   feet: [{ name: 'TAIL', pixels: ['    ◥████◤    ', '     ◥██◤     ', '      ◥◤      '] }],
   checkUnlock: (state) => state.totalCommits >= 50 // 50コミットで解放
 };

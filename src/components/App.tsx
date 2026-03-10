@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import { GiikuState, ICharacterRenderer } from '../types.js';
 import { translations } from '../assets/translations.js';
 import { SKIN_DEFINITIONS, SkinDefinition } from '../assets/skins/definitions.js';
+import { GIIKU_CONFIG } from '../assets/config.js';
 
 interface AppProps {
   state: GiikuState;
@@ -49,11 +50,17 @@ export const App: React.FC<AppProps> = ({
           {godMode && <Text color="red" bold> [GOD MODE]</Text>}
           <Text> - User: {userName}</Text>
         </Box>
-        <Text color="gray">[{currentDisplayIndex}/{totalAvailable}]</Text>
+        <Text color="gray">[{totalCountSafe(totalAvailable, currentDisplayIndex)}/{totalAvailable}]</Text>
       </Box>
 
       <Box flexDirection="row">
-        <Box width={30} justifyContent="center" flexDirection="column" alignItems="center">
+        <Box 
+          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH} 
+          height={GIIKU_CONFIG.UI.CHARACTER_FRAME_HEIGHT} 
+          justifyContent="center" 
+          flexDirection="column" 
+          alignItems="center"
+        >
           {currentSkin ? (
             <React.Fragment>
               {renderer.render({ ...state, currentSkinId: currentSkin.id })}
@@ -118,3 +125,7 @@ export const App: React.FC<AppProps> = ({
     </Box>
   );
 };
+
+function totalCountSafe(total: number, index: number) {
+  return total > 0 ? index : 0;
+}
