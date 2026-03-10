@@ -19,10 +19,16 @@ export class SetupManager {
 giiku_git_wrapper() {
   command git "$@"
   local exit_code=$?
-  giiku --hook "$@" > /dev/null 2>&1
   
-  if [[ "$1" == "status" || "$1" == "commit" || "$1" == "push" ]]; then
-    giiku --status-line
+  if [[ "$1" == "commit" ]]; then
+    # Show full character reaction for commits
+    giiku --commit-reaction "$@"
+  else
+    # Background update for other commands
+    giiku --hook "$@" > /dev/null 2>&1
+    if [[ "$1" == "status" || "$1" == "push" ]]; then
+      giiku --status-line
+    fi
   fi
 
   return $exit_code
