@@ -1,15 +1,25 @@
 {
-  "name": "tui-prac",
-  "version": "1.0.0",
+  "name": "giiku",
+  "version": "0.1.0",
   "type": "module",
+  "bin": {
+    "giiku": "./dist/cli.js"
+  },
   "dependencies": {
+    "conf": "^13.0.0",
     "ink": "^6.8.0",
     "react": "^19.2.4"
   },
   "devDependencies": {
-    "tsx": "^4.19.3"
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   },
   "scripts": {
-    "dev": "tsx ui.js"
+    "dev": "tsx src/cli.tsx",
+    "build": "tsc",
+    "start": "node ./dist/cli.js",
+    "link-cli": "npm run build && npm link"
   }
 }
