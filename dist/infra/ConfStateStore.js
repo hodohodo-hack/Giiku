@@ -10,6 +10,7 @@ export class ConfStateStore {
                 todayCommits: 0,
                 lastUpdate: new Date().toISOString(),
                 currentSkinId: 'slime',
+                unlockedSkinIds: ['slime'],
                 daysActive: 1,
                 titles: ['Novice Engineer'],
                 history: {

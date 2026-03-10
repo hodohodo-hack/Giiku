@@ -1,6 +1,7 @@
 import { GiikuState, IGitProvider, IStateStore } from '../types.js';
 import { TitleEngine } from './TitleEngine.js';
 import { GIIKU_CONFIG } from '../assets/config.js';
+import { BASES, Base } from '../assets/parts.js';
 
 export class GiikuEngine {
   private titleEngine: TitleEngine;
@@ -10,6 +11,26 @@ export class GiikuEngine {
     private gitProvider: IGitProvider
   ) {
     this.titleEngine = new TitleEngine();
+  }
+
+  // Check and update obtained skins based on progress
+  private checkUnlockConditions(state: GiikuState): string[] {
+    const unlocked = new Set(state.unlockedSkinIds);
+    
+    // Unlock Mecha: 10 commits
+    if (state.totalCommits >= 10) unlocked.add('mecha');
+    // Unlock Phantom: 50 commits
+    if (state.totalCommits >= 50) unlocked.add('phantom');
+    // Unlock Forest: 3 active days
+    if (state.daysActive >= 3) unlocked.add('forest');
+
+    return Array.from(unlocked);
+  }
+
+  // Get only the skins the user has already obtained
+  public getAvailableSkins(): Base[] {
+    const state = this.stateStore.get();
+    return BASES.filter(b => state.unlockedSkinIds.includes(b.id));
   }
 
   public processHook(args: string[]): { message: string, state: GiikuState } | null {
@@ -59,6 +80,7 @@ export class GiikuEngine {
       condition,
       history,
       titles: newTitles,
+      unlockedSkinIds: this.checkUnlockConditions(currentState)
     };
 
     this.stateStore.save(updatedState);
@@ -94,7 +116,7 @@ export class GiikuEngine {
       daysActive += 1;
     }
 
-    const updatedState: GiikuState = {
+    const tempState: GiikuState = {
       ...currentState,
       totalCommits: stats.totalCommits,
       todayCommits: stats.todayCommits,
@@ -105,6 +127,11 @@ export class GiikuEngine {
         satiety: newSatiety,
         luster: newLuster,
       }
+    };
+
+    const updatedState: GiikuState = {
+      ...tempState,
+      unlockedSkinIds: this.checkUnlockConditions(tempState)
     };
 
     this.stateStore.save(updatedState);

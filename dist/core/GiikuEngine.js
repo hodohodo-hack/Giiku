@@ -1,5 +1,6 @@
 import { TitleEngine } from './TitleEngine.js';
 import { GIIKU_CONFIG } from '../assets/config.js';
+import { BASES } from '../assets/parts.js';
 export class GiikuEngine {
     stateStore;
     gitProvider;
@@ -8,6 +9,25 @@ export class GiikuEngine {
         this.stateStore = stateStore;
         this.gitProvider = gitProvider;
         this.titleEngine = new TitleEngine();
+    }
+    // Check and update obtained skins based on progress
+    checkUnlockConditions(state) {
+        const unlocked = new Set(state.unlockedSkinIds);
+        // Unlock Mecha: 10 commits
+        if (state.totalCommits >= 10)
+            unlocked.add('mecha');
+        // Unlock Phantom: 50 commits
+        if (state.totalCommits >= 50)
+            unlocked.add('phantom');
+        // Unlock Forest: 3 active days
+        if (state.daysActive >= 3)
+            unlocked.add('forest');
+        return Array.from(unlocked);
+    }
+    // Get only the skins the user has already obtained
+    getAvailableSkins() {
+        const state = this.stateStore.get();
+        return BASES.filter(b => state.unlockedSkinIds.includes(b.id));
     }
     processHook(args) {
         if (args.length === 0)
@@ -50,6 +70,7 @@ export class GiikuEngine {
             condition,
             history,
             titles: newTitles,
+            unlockedSkinIds: this.checkUnlockConditions(currentState)
         };
         this.stateStore.save(updatedState);
         if (!actionMessage && ['pull', 'checkout', 'branch', 'add'].includes(command)) {
@@ -76,7 +97,7 @@ export class GiikuEngine {
         if (lastUpdateDate !== nowDate) {
             daysActive += 1;
         }
-        const updatedState = {
+        const tempState = {
             ...currentState,
             totalCommits: stats.totalCommits,
             todayCommits: stats.todayCommits,
@@ -87,6 +108,10 @@ export class GiikuEngine {
                 satiety: newSatiety,
                 luster: newLuster,
             }
+        };
+        const updatedState = {
+            ...tempState,
+            unlockedSkinIds: this.checkUnlockConditions(tempState)
         };
         this.stateStore.save(updatedState);
         return updatedState;

@@ -17,15 +17,16 @@ const TuiApp = ({ engine, renderer, userName, initialState }) => {
     useInput((input, key) => {
         if (input === 'q')
             exit();
-        // Skin switching with Left/Right arrows
+        // Skin switching with Left/Right arrows (only for unlocked skins)
         if (key.leftArrow || key.rightArrow) {
-            const currentIndex = BASES.findIndex(b => b.id === state.currentSkinId);
+            const unlockedBases = BASES.filter(b => state.unlockedSkinIds.includes(b.id));
+            const currentIndex = unlockedBases.findIndex(b => b.id === state.currentSkinId);
             let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
-            if (nextIndex >= BASES.length)
+            if (nextIndex >= unlockedBases.length)
                 nextIndex = 0;
             if (nextIndex < 0)
-                nextIndex = BASES.length - 1;
-            const nextSkinId = BASES[nextIndex].id;
+                nextIndex = unlockedBases.length - 1;
+            const nextSkinId = unlockedBases[nextIndex].id;
             engine.setSkin(nextSkinId);
             setState({ ...state, currentSkinId: nextSkinId });
         }
