@@ -1,31 +1,37 @@
 import { GiikuState } from '../types.js';
 import { translations } from '../assets/translations.js';
+import { GIIKU_CONFIG } from '../assets/config.js';
 
 export class TitleEngine {
   public evaluateTitles(state: GiikuState, lastCommand?: string): string[] {
     const lang = state.language || 'en';
     const t = translations[lang].titles;
+    const cfg = GIIKU_CONFIG.TITLES;
     const titles = new Set<string>([t.novice]);
     const history = state.history;
 
-    if (history.morningCommits >= 3) {
+    // 早起きのエンジニア
+    if (history.morningCommits >= cfg.MORNING_COUNT) {
       titles.add(t.earlyBird);
     }
-    if (history.fixCommits >= 5) {
+    // デバッグの鬼
+    if (history.fixCommits >= cfg.FIX_COUNT) {
       titles.add(t.debugDemon);
     }
-    if (state.totalCommits >= 100) {
+    // 百戦錬磨
+    if (state.totalCommits >= cfg.VETERAN_COUNT) {
       titles.add(t.veteran);
     }
 
     const diffCount = history.commandCounts['diff'] || 0;
-    const statusCount = history.commandCounts['status'] || 0;
     const commitCount = history.commandCounts['commit'] || 0;
 
-    if (diffCount > commitCount * 2 && diffCount > 5) {
+    // 慎重派
+    if (diffCount > commitCount * cfg.CAUTIOUS_RATIO && diffCount > cfg.CAUTIOUS_MIN_DIFF) {
       titles.add(t.cautious);
     }
-    if (commitCount > 10 && (new Date().getHours() > 22 || new Date().getHours() < 3)) {
+    // 炎上中
+    if (commitCount > cfg.BURNING_MIN_COMMIT && (new Date().getHours() >= cfg.BURNING_START || new Date().getHours() <= cfg.BURNING_END)) {
       titles.add(t.burning);
     }
 

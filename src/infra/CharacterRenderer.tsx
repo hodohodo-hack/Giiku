@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import { GiikuState, ICharacterRenderer } from '../types.js';
 import { BASES } from '../assets/parts.js';
+import { GIIKU_CONFIG } from '../assets/config.js';
 
 export class CharacterRenderer implements ICharacterRenderer {
   render(state: GiikuState) {
@@ -11,17 +12,17 @@ export class CharacterRenderer implements ICharacterRenderer {
     const feet = base.feet[0];
     const color = base.color;
     const luster = state.condition.luster;
+    const cfg = GIIKU_CONFIG.CONDITION.LUSTER;
 
     // 輝きの粒子を生成する関数
     const getSparkleLine = (index: number, width: number, isTopBottom = false) => {
-      if (luster < 20) return null;
+      if (luster < cfg.AURA_THRESHOLD / 2) return null; // 閾値の半分から予兆が出る
       
-      const chars = luster > 80 ? ['✧', '°', '*', '+', '·'] : ['*', '·', '°'];
+      const chars = luster > cfg.SPARKLE_THRESHOLD ? ['✧', '°', '*', '+', '·'] : ['*', '·', '°'];
       const density = Math.floor(luster / 20);
       
       let line = '';
       for (let i = 0; i < width; i++) {
-        // ツヤの値とインデックスに基づいた擬似乱数で配置
         const seed = (i * 13 + index * 7 + Math.floor(luster)) % 100;
         if (seed < (isTopBottom ? density * 4 : density * 2)) {
           line += chars[seed % chars.length];
@@ -42,7 +43,7 @@ export class CharacterRenderer implements ICharacterRenderer {
     return (
       <Box flexDirection="column" alignItems="center">
         {/* 上部のキラキラ */}
-        {luster >= 40 && (
+        {luster >= cfg.AURA_THRESHOLD && (
           <Box height={1}>
             <Text color="yellow">{getSparkleLine(-1, charWidth + 4, true)}</Text>
           </Box>
@@ -60,7 +61,7 @@ export class CharacterRenderer implements ICharacterRenderer {
         ))}
 
         {/* 下部のキラキラ */}
-        {luster >= 40 && (
+        {luster >= cfg.AURA_THRESHOLD && (
           <Box height={1}>
             <Text color="yellow">{getSparkleLine(100, charWidth + 4, true)}</Text>
           </Box>

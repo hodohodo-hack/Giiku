@@ -1,4 +1,5 @@
 import { TitleEngine } from './TitleEngine.js';
+import { GIIKU_CONFIG } from '../assets/config.js';
 export class GiikuEngine {
     stateStore;
     gitProvider;
@@ -8,45 +9,41 @@ export class GiikuEngine {
         this.gitProvider = gitProvider;
         this.titleEngine = new TitleEngine();
     }
-    // Gitコマンドのフック処理（ターミナルでの操作ごとに呼ばれる）
     processHook(args) {
         if (args.length === 0)
             return null;
-        const command = args[0]; // 'commit', 'push', 'status', etc.
-        let currentState = this.refresh(); // 基本の減衰や日数計算を先に適用
+        const command = args[0];
+        let currentState = this.refresh();
         const history = currentState.history;
         const condition = currentState.condition;
-        // コマンド実行回数のカウント
+        const cfg = GIIKU_CONFIG.CONDITION;
         history.commandCounts[command] = (history.commandCounts[command] || 0) + 1;
         let actionMessage = '';
-        // コマンド別のパラメータ上昇ロジック
         if (command === 'commit') {
-            condition.satiety = Math.min(100, condition.satiety + 20);
+            condition.satiety = Math.min(cfg.SATIETY.MAX, condition.satiety + cfg.SATIETY.RECOVERY);
             actionMessage = '🍔 満腹度が回復した！ (Satiety UP)';
             const hour = new Date().getHours();
-            if (hour >= 5 && hour <= 9) {
+            if (hour >= GIIKU_CONFIG.TITLES.MORNING_START && hour <= GIIKU_CONFIG.TITLES.MORNING_END) {
                 history.morningCommits += 1;
             }
-            // コミットメッセージの解析（ここでは簡易的にargsの中に "fix" があるか等）
             if (args.join(' ').toLowerCase().includes('fix')) {
                 history.fixCommits += 1;
             }
             history.lastCommitTime = new Date().toISOString();
         }
         else if (command === 'push') {
-            condition.luster = Math.min(100, condition.luster + 15);
+            condition.luster = Math.min(cfg.LUSTER.MAX, condition.luster + cfg.LUSTER.RECOVERY);
             actionMessage = '✨ ツヤが出た！ (Luster UP)';
             history.lastPushTime = new Date().toISOString();
         }
         else if (command === 'starve') {
-            condition.satiety = Math.max(0, condition.satiety - 20);
+            condition.satiety = Math.max(0, condition.satiety - cfg.DEBUG.DECREASE_AMOUNT);
             actionMessage = '💀 お腹が空いてきた... (Satiety DOWN)';
         }
         else if (command === 'rust') {
-            condition.luster = Math.max(0, condition.luster - 20);
+            condition.luster = Math.max(0, condition.luster - cfg.DEBUG.DECREASE_AMOUNT);
             actionMessage = '🌫️ ツヤが失われた... (Luster DOWN)';
         }
-        // 称号の再評価
         const newTitles = this.titleEngine.evaluateTitles(currentState, command);
         const updatedState = {
             ...currentState,
@@ -55,29 +52,24 @@ export class GiikuEngine {
             titles: newTitles,
         };
         this.stateStore.save(updatedState);
-        // ステータス表示やアクションがないコマンド（pullなど）は無視しても良いが、
-        // ここでは何らかの反応を返す。
         if (!actionMessage && ['pull', 'checkout', 'branch', 'add'].includes(command)) {
             actionMessage = '👾 キャラクターはあなたの作業を見守っている...';
         }
         return { message: actionMessage, state: updatedState };
     }
-    // 基本的な時間の経過や、コミット数の同期処理
     refresh() {
         const currentState = this.stateStore.get();
         const stats = this.gitProvider.getStats();
+        const cfg = GIIKU_CONFIG.CONDITION;
         let newSatiety = currentState.condition.satiety;
         let newLuster = currentState.condition.luster;
-        // 時間経過によるパラメータの減衰 (シミュレーション)
         const lastUpdate = new Date(currentState.lastUpdate).getTime();
         const now = new Date().getTime();
         const hoursPassed = (now - lastUpdate) / (1000 * 60 * 60);
         if (hoursPassed > 1) {
-            // 1時間ごとに満腹度とツヤが低下
-            newSatiety = Math.max(0, newSatiety - Math.floor(hoursPassed * 2));
-            newLuster = Math.max(0, newLuster - Math.floor(hoursPassed * 1));
+            newSatiety = Math.max(0, newSatiety - Math.floor(hoursPassed * cfg.SATIETY.DECAY_PER_HOUR));
+            newLuster = Math.max(0, newLuster - Math.floor(hoursPassed * cfg.LUSTER.DECAY_PER_HOUR));
         }
-        // 日数更新
         const lastUpdateDate = new Date(currentState.lastUpdate).toLocaleDateString();
         const nowDate = new Date().toLocaleDateString();
         let daysActive = currentState.daysActive;
