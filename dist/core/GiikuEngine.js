@@ -23,7 +23,7 @@ export class GiikuEngine {
             condition.satiety = Math.min(cfg.SATIETY.MAX, condition.satiety + cfg.SATIETY.RECOVERY);
             actionMessage = '🍔 満腹度が回復した！ (Satiety UP)';
             const hour = new Date().getHours();
-            if (hour >= GIIKU_CONFIG.TITLES.MORNING_START && hour <= GIIKU_CONFIG.TITLES.MORNING_END) {
+            if (hour >= 5 && hour <= 9) {
                 history.morningCommits += 1;
             }
             if (args.join(' ').toLowerCase().includes('fix')) {

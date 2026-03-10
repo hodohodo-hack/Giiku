@@ -10,14 +10,7 @@ export const translations = {
       status: 'STATUS',
       quit: 'Press q to exit | Arrows: Switch Skin | Growth logic linked to Git'
     },
-    titles: {
-      novice: 'Novice Engineer',
-      earlyBird: 'Early Bird Engineer🌅',
-      debugDemon: 'Debug Demon👹',
-      veteran: 'Veteran Warrior⚔️',
-      cautious: 'Currently: Cautious🐢',
-      burning: 'Currently: On Fire🔥'
-    },
+    // titles 項目は src/assets/titles/ 配下の定義ファイルに移動しました
     cli: {
       startup: (name: string, satiety: number) => `\n👾 Hey ${name}! Let's code today! [Satiety: ${satiety}%]`,
       hungry: (name: string, satiety: number) => `\n🤤 Hey ${name}... so hungry... [Satiety: ${satiety}%]`,
@@ -78,14 +71,6 @@ export const translations = {
       activeDays: '活動日数',
       status: 'ステータス',
       quit: 'qキーで終了 | 左右キー: スキン切り替え | Git操作で育ちます'
-    },
-    titles: {
-      novice: '新米エンジニア',
-      earlyBird: '早起きのエンジニア🌅',
-      debugDemon: 'デバッグの鬼👹',
-      veteran: '百戦錬磨⚔️',
-      cautious: '現在：慎重派🐢',
-      burning: '現在：炎上中🔥'
     },
     cli: {
       startup: (name: string, satiety: number) => `\n👾 やあ ${name}！ 今日の開発も頑張ろう！ [満腹度: ${satiety}%]`,
