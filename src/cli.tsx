@@ -2,14 +2,14 @@
 import React from 'react';
 import { render, useApp, useInput } from 'ink';
 import { App } from './components/App.js';
+import { CommitReaction } from './components/CommitReaction.js';
 import { GiikuEngine } from './core/GiikuEngine.js';
 import { GitProvider } from './infra/GitProvider.js';
 import { ConfStateStore } from './infra/ConfStateStore.js';
 import { CharacterRenderer } from './infra/CharacterRenderer.js';
 import { SetupManager } from './core/SetupManager.js';
-import { ICharacterRenderer, GiikuState } from './types.js';
+import { ICharacterRenderer, Language } from './types.js';
 import { translations } from './assets/translations.js';
-import { BASES } from './assets/parts.js';
 
 const TuiApp: React.FC<{ engine: GiikuEngine, renderer: ICharacterRenderer, userName: string }> = ({ engine, renderer, userName }) => {
   const { exit } = useApp();
@@ -50,20 +50,12 @@ const main = () => {
       console.log(greeting);
       process.exit(0);
     }
-    // New: Reaction after git commit
+    // Rich commit reaction using Ink
     if (cmd === '--commit-reaction') {
       const result = engine.processHook(args.slice(1));
       if (result) {
-        const { message, state } = result;
-        const base = BASES.find(b => b.id === state.currentSkinId) || BASES[0];
-        
-        console.log(`\n${message}`);
-        console.log('\n' + base.heads[0].pixels.join('\n'));
-        console.log(base.bodies[0].pixels.join('\n'));
-        console.log(base.feet[0].pixels.join('\n'));
-        
-        const title = state.titles[0] || (lang === 'ja' ? '新米' : 'Novice');
-        console.log(`\n👾 [${translations[lang].labels.satiety}: ${state.condition.satiety}% | ${translations[lang].labels.title}: ${title}]\n`);
+        const renderer = new CharacterRenderer();
+        render(<CommitReaction state={result.state} renderer={renderer} message={result.message} />);
       }
       process.exit(0);
     }
@@ -79,6 +71,9 @@ const main = () => {
     }
     if (cmd === '--help' || cmd === '-h') {
       console.log(t.help);
+      if (args.includes('--debug')) {
+        console.log(t.debugHelp);
+      }
       process.exit(0);
     }
     if (cmd === '--version' || cmd === '-v') {

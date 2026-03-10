@@ -34,9 +34,14 @@ export const translations = {
     --setup [--ja]    Install hooks and startup greeting (use --ja for Japanese).
     --remove-setup    Remove Giiku from shell config.
     --startup         Show character greeting.
-    --status-line     Show 1-line status.
     --help, -h        Show this help.
     --version, -v     Show version.
+      `,
+      debugHelp: `
+  Debug Options:
+    --hook <args>        Process git command hook manually.
+    --status-line        Show 1-line status.
+    --commit-reaction    Show rich commit reaction UI.
       `
     }
   },
@@ -75,9 +80,14 @@ export const translations = {
     --setup [--ja]    フックと起動時挨拶をインストールします (--ja で日本語化)。
     --remove-setup    設定を削除します。
     --startup         キャラクターからの挨拶を表示します。
-    --status-line     現在のステータスを1行で表示します。
     --help, -h        ヘルプを表示します。
     --version, -v     バージョン情報を表示します。
+      `,
+      debugHelp: `
+  デバッグ用オプション:
+    --hook <args>        Gitフックを手動で実行します。
+    --status-line        1行ステータスを表示します。
+    --commit-reaction    コミット時のリッチなリアクションを表示します。
       `
     }
   }
