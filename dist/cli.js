@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { jsx as _jsx } from "react/jsx-runtime";
+import { useState } from 'react';
 import { render, useApp, useInput } from 'ink';
 import { App } from './components/App.js';
 import { CommitReaction } from './components/CommitReaction.js';
@@ -9,11 +10,26 @@ import { ConfStateStore } from './infra/ConfStateStore.js';
 import { CharacterRenderer } from './infra/CharacterRenderer.js';
 import { SetupManager } from './core/SetupManager.js';
 import { translations } from './assets/translations.js';
-const TuiApp = ({ engine, renderer, userName }) => {
+import { BASES } from './assets/parts.js';
+const TuiApp = ({ engine, renderer, userName, initialState }) => {
     const { exit } = useApp();
-    const state = engine.refresh();
-    useInput((input) => { if (input === 'q')
-        exit(); });
+    const [state, setState] = useState(initialState);
+    useInput((input, key) => {
+        if (input === 'q')
+            exit();
+        // Skin switching with Left/Right arrows
+        if (key.leftArrow || key.rightArrow) {
+            const currentIndex = BASES.findIndex(b => b.id === state.currentSkinId);
+            let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
+            if (nextIndex >= BASES.length)
+                nextIndex = 0;
+            if (nextIndex < 0)
+                nextIndex = BASES.length - 1;
+            const nextSkinId = BASES[nextIndex].id;
+            engine.setSkin(nextSkinId);
+            setState({ ...state, currentSkinId: nextSkinId });
+        }
+    });
     return _jsx(App, { state: state, renderer: renderer, userName: userName });
 };
 const main = () => {
@@ -45,7 +61,6 @@ const main = () => {
             console.log(greeting);
             process.exit(0);
         }
-        // Rich commit reaction using Ink
         if (cmd === '--commit-reaction') {
             const result = engine.processHook(args.slice(1));
             if (result) {
@@ -78,6 +93,7 @@ const main = () => {
     }
     const renderer = new CharacterRenderer();
     const stats = gitProvider.getStats();
-    render(_jsx(TuiApp, { engine: engine, renderer: renderer, userName: stats.userName }));
+    const updatedState = engine.refresh();
+    render(_jsx(TuiApp, { engine: engine, renderer: renderer, userName: stats.userName, initialState: updatedState }));
 };
 main();

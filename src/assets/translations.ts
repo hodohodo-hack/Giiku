@@ -8,7 +8,7 @@ export const translations = {
       todayCommits: 'Today\'s Commits',
       activeDays: 'Active Days',
       status: 'STATUS',
-      quit: 'Press q to exit | Growth logic linked to your Git history'
+      quit: 'Press q to exit | Arrows: Switch Skin | Growth logic linked to Git'
     },
     titles: {
       novice: 'Novice Engineer',
@@ -25,27 +25,46 @@ export const translations = {
         `👾 [Satiety: ${s}% | Luster: ${l}% | Title: ${t}]`,
       help: `
   👾 Giiku - Grow your digital pet with Git!
+  ==========================================
+  Giiku is a cross-project growth tool. Your pet lives in your terminal, 
+  not just in one repository. It tracks your local Git actions to grow.
 
-  Usage:
+  USAGE:
     giiku [options]
 
-  Options:
-    (none)            Launch TUI (Full-screen mode).
-    --setup [--ja]    Install hooks and startup greeting (use --ja for Japanese).
-    --remove-setup    Remove Giiku from shell config.
-    --startup         Show character greeting.
-    --help, -h        Show this help.
-    --version, -v     Show version.
+  OPTIONS:
+    (none)            Launch TUI (Full-screen mode). Customize skins and view stats.
+    --setup [--ja]    Install Git hooks to your shell (.zshrc/.bashrc).
+    --remove-setup    Remove all Giiku hooks and configurations.
+    --startup         Show greeting. Best used in your shell's startup script.
+    --help, -h        Show this help message.
+    --version, -v     Show current version.
 
-  Growth Tips:
-    - git commit      Feed your pet (Satiety UP)
-    - git push        Polish your pet (Luster UP)
+  STATUS GUIDE:
+    - Satiety (Hunger): 
+      Goes up with "git commit". If it hits 0%, your pet might starve!
+    - Luster (Shine):   
+      Goes up with "git push". High luster adds a beautiful aura to your pet.
+    - Days Active:      
+      Total days you have developed with Giiku.
+
+  TIPS:
+    - Committing in the morning (5:00-9:00) might earn you a special title.
+    - Frequent use of "git diff" and "git status" reflects a cautious dev style.
       `,
       debugHelp: `
-  Debug Options:
-    --hook <args>        Process git command hook manually.
-    --status-line        Show 1-line status.
-    --commit-reaction    Show rich commit reaction UI.
+  DEBUG & ADVANCED OPTIONS:
+  -------------------------
+  --hook <cmd>        Manually trigger an action (e.g., --hook commit).
+  --status-line       Display the current status in a single line.
+  --commit-reaction   Trigger the rich TUI reaction for a commit.
+
+  FORCE GROWTH / DECREASE (for testing):
+    - Increase Satiety: giiku --hook commit
+    - Increase Luster:  giiku --hook push
+    - Decrease Satiety: giiku --hook starve
+    - Decrease Luster:  giiku --hook rust
+    - Check Titles:     giiku --status-line
       `
     }
   },
@@ -58,7 +77,7 @@ export const translations = {
       todayCommits: '今日のコミット数',
       activeDays: '活動日数',
       status: 'ステータス',
-      quit: 'qキーで終了 | あなたのGit操作でキャラクターが育ちます'
+      quit: 'qキーで終了 | 左右キー: スキン切り替え | Git操作で育ちます'
     },
     titles: {
       novice: '新米エンジニア',
@@ -75,24 +94,46 @@ export const translations = {
         `👾 [満腹度: ${s}% | ツヤ: ${l}% | 称号: ${t}]`,
       help: `
   👾 Gi育 (Giiku) - Git操作でキャラクターを育てる育成ツール
+  ==========================================================
+  Gi育は、特定のプロジェクトではなく「あなたのパソコン上」で
+  キャラクターを育てるツールです。日々のGit操作がキャラの糧になります。
 
   使い方:
     giiku [オプション]
 
   オプション:
-    (なし)            TUI (フル画面モード) を起動します。
-    --setup [--ja]    フックと起動時挨拶をインストールします (--ja で日本語化)。
-    --remove-setup    設定を削除します。
-    --startup         キャラクターからの挨拶を表示します。
-    --status-line     現在のステータスを1行で表示します。
-    --help, -h        ヘルプを表示します。
+    (なし)            TUI (フル画面モード) を起動します。スキンの変更や詳細確認ができます。
+    --setup [--ja]    Gitフックをシェル (.zshrc/.bashrc) にインストールします。
+    --remove-setup    設定をすべて削除し、アンインストールします。
+    --startup         キャラクターからの挨拶を表示します (シェル起動時に自動実行されます)。
+    --help, -h        このヘルプを表示します。
     --version, -v     バージョン情報を表示します。
+
+  パラメータ解説:
+    - 満腹度 (Satiety):
+      "git commit" で回復します。0%になると餓死の危機に瀕します。
+    - ツヤ (Luster):
+      "git push" で上昇します。高いとキャラクターの周囲にオーラが発生します。
+    - 活動日数:
+      Gi育と一緒に開発を行った通算日数です。
+
+  ヒント:
+    - 朝（5:00-9:00）にコミットすると特別な称号がもらえるかもしれません。
+    - コミット前に "git diff" や "git status" を多用すると「慎重派」と見なされます。
       `,
       debugHelp: `
-  デバッグ用オプション:
-    --hook <args>        Gitフックを手動で実行します。
-    --status-line        1行ステータスを表示します。
-    --commit-reaction    コミット時のリッチなリアクションを表示します。
+  デバッグ・詳細オプション:
+  -------------------------
+  --hook <cmd>        Gitアクションを手動で実行します (例: --hook commit)。
+  --status-line       現在のステータスを1行で表示します。
+  --commit-reaction   コミット時のリッチな演出をテスト表示します。
+
+  強制成長・減少（テスト用）:
+    - 満腹度を上げる: giiku --hook commit
+    - ツヤを出す:     giiku --hook push
+    - 満腹度を下げる: giiku --hook starve
+    - ツヤを下げる:   giiku --hook rust
+    - 称号を確認する: giiku --status-line
       `
     }
   }

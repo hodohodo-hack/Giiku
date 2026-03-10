@@ -38,6 +38,14 @@ export class GiikuEngine {
             actionMessage = '✨ ツヤが出た！ (Luster UP)';
             history.lastPushTime = new Date().toISOString();
         }
+        else if (command === 'starve') {
+            condition.satiety = Math.max(0, condition.satiety - 20);
+            actionMessage = '💀 お腹が空いてきた... (Satiety DOWN)';
+        }
+        else if (command === 'rust') {
+            condition.luster = Math.max(0, condition.luster - 20);
+            actionMessage = '🌫️ ツヤが失われた... (Luster DOWN)';
+        }
         // 称号の再評価
         const newTitles = this.titleEngine.evaluateTitles(currentState, command);
         const updatedState = {
@@ -93,5 +101,12 @@ export class GiikuEngine {
     }
     getState() {
         return this.stateStore.get();
+    }
+    setSkin(skinId) {
+        const currentState = this.stateStore.get();
+        this.stateStore.save({
+            ...currentState,
+            currentSkinId: skinId
+        });
     }
 }

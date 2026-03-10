@@ -5,30 +5,66 @@ import { BASES } from '../assets/parts.js';
 
 export class CharacterRenderer implements ICharacterRenderer {
   render(state: GiikuState) {
-    // Find the base by skin ID or fallback to slime
     const base = BASES.find(b => b.id === state.currentSkinId) || BASES[0];
-    
-    // Choose parts based on state (simulated for now)
-    // In a full implementation, parts indices could be stored in GiikuState
     const head = base.heads[0];
     const body = base.bodies[0];
     const feet = base.feet[0];
     const color = base.color;
+    const luster = state.condition.luster;
+
+    // 輝きの粒子を生成する関数
+    const getSparkleLine = (index: number, width: number, isTopBottom = false) => {
+      if (luster < 20) return null;
+      
+      const chars = luster > 80 ? ['✧', '°', '*', '+', '·'] : ['*', '·', '°'];
+      const density = Math.floor(luster / 20);
+      
+      let line = '';
+      for (let i = 0; i < width; i++) {
+        // ツヤの値とインデックスに基づいた擬似乱数で配置
+        const seed = (i * 13 + index * 7 + Math.floor(luster)) % 100;
+        if (seed < (isTopBottom ? density * 4 : density * 2)) {
+          line += chars[seed % chars.length];
+        } else {
+          line += ' ';
+        }
+      }
+      return line;
+    };
+
+    const lines = [
+      ...head.pixels,
+      ...body.pixels,
+      ...feet.pixels
+    ];
+    const charWidth = lines[0].length;
 
     return (
       <Box flexDirection="column" alignItems="center">
-        {/* Head */}
-        {head.pixels.map((line, i) => (
-          <Text key={`h-${i}`} color={color} bold>{line}</Text>
+        {/* 上部のキラキラ */}
+        {luster >= 40 && (
+          <Box height={1}>
+            <Text color="yellow">{getSparkleLine(-1, charWidth + 4, true)}</Text>
+          </Box>
+        )}
+
+        {/* キャラクター本体と側面のオーラ */}
+        {lines.map((line, i) => (
+          <Box key={i} flexDirection="row">
+            <Text color="yellow">{getSparkleLine(i, 2)}</Text>
+            <Box paddingX={1}>
+              <Text color={color} bold>{line}</Text>
+            </Box>
+            <Text color="yellow">{getSparkleLine(i + 50, 2)}</Text>
+          </Box>
         ))}
-        {/* Body */}
-        {body.pixels.map((line, i) => (
-          <Text key={`b-${i}`} color={color} bold>{line}</Text>
-        ))}
-        {/* Feet */}
-        {feet.pixels.map((line, i) => (
-          <Text key={`f-${i}`} color={color} bold>{line}</Text>
-        ))}
+
+        {/* 下部のキラキラ */}
+        {luster >= 40 && (
+          <Box height={1}>
+            <Text color="yellow">{getSparkleLine(100, charWidth + 4, true)}</Text>
+          </Box>
+        )}
       </Box>
     );
   }
