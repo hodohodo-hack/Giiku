@@ -1,7 +1,14 @@
 import { GiikuState, IGitProvider, IStateStore } from '../types.js';
 import { TitleEngine } from './TitleEngine.js';
 import { GIIKU_CONFIG } from '../assets/config.js';
-import { BASES, Base } from '../assets/parts.js';
+import { SKIN_DEFINITIONS, SkinDefinition } from '../assets/skins/definitions.js';
+
+export interface ProcessResult {
+  message: string;
+  state: GiikuState;
+  newSkins: string[];
+  newTitles: string[];
+}
 
 export class GiikuEngine {
   private titleEngine: TitleEngine;
@@ -13,31 +20,37 @@ export class GiikuEngine {
     this.titleEngine = new TitleEngine();
   }
 
-  // Check and update obtained skins based on progress
-  private checkUnlockConditions(state: GiikuState): string[] {
-    const unlocked = new Set(state.unlockedSkinIds);
-    
-    // Unlock Mecha: 10 commits
-    if (state.totalCommits >= 10) unlocked.add('mecha');
-    // Unlock Phantom: 50 commits
-    if (state.totalCommits >= 50) unlocked.add('phantom');
-    // Unlock Forest: 3 active days
-    if (state.daysActive >= 3) unlocked.add('forest');
+  // 解放条件のチェックと新しく解放されたもののリストを返す
+  private checkUnlockConditions(state: GiikuState): { unlockedIds: string[], newlyUnlockedNames: string[] } {
+    const newlyUnlockedNames: string[] = [];
+    const currentUnlockedIds = new Set(state.unlockedSkinIds);
+    const lang = state.language || 'en';
 
-    return Array.from(unlocked);
+    for (const skin of SKIN_DEFINITIONS) {
+      if (!currentUnlockedIds.has(skin.id) && skin.checkUnlock(state)) {
+        currentUnlockedIds.add(skin.id);
+        newlyUnlockedNames.push(skin.name);
+      }
+    }
+
+    return { 
+      unlockedIds: Array.from(currentUnlockedIds), 
+      newlyUnlockedNames 
+    };
   }
 
-  // Get only the skins the user has already obtained
-  public getAvailableSkins(): Base[] {
+  public getAvailableSkins(godMode = false): SkinDefinition[] {
+    if (godMode) return SKIN_DEFINITIONS;
     const state = this.stateStore.get();
-    return BASES.filter(b => state.unlockedSkinIds.includes(b.id));
+    return SKIN_DEFINITIONS.filter(s => state.unlockedSkinIds.includes(s.id));
   }
 
-  public processHook(args: string[]): { message: string, state: GiikuState } | null {
+  public processHook(args: string[]): ProcessResult | null {
     if (args.length === 0) return null;
     
     const command = args[0];
-    let currentState = this.refresh();
+    const prevState = this.refresh();
+    const currentState = { ...prevState }; // refresh後の最新状態
     
     const history = currentState.history;
     const condition = currentState.condition;
@@ -50,21 +63,14 @@ export class GiikuEngine {
     if (command === 'commit') {
       condition.satiety = Math.min(cfg.SATIETY.MAX, condition.satiety + cfg.SATIETY.RECOVERY);
       actionMessage = '🍔 満腹度が回復した！ (Satiety UP)';
-      
       const hour = new Date().getHours();
-      if (hour >= 5 && hour <= 9) {
-        history.morningCommits += 1;
-      }
-      if (args.join(' ').toLowerCase().includes('fix')) {
-        history.fixCommits += 1;
-      }
+      if (hour >= 5 && hour <= 9) history.morningCommits += 1;
+      if (args.join(' ').toLowerCase().includes('fix')) history.fixCommits += 1;
       history.lastCommitTime = new Date().toISOString();
-
     } else if (command === 'push') {
       condition.luster = Math.min(cfg.LUSTER.MAX, condition.luster + cfg.LUSTER.RECOVERY);
       actionMessage = '✨ ツヤが出た！ (Luster UP)';
       history.lastPushTime = new Date().toISOString();
-
     } else if (command === 'starve') {
       condition.satiety = Math.max(0, condition.satiety - cfg.DEBUG.DECREASE_AMOUNT);
       actionMessage = '💀 お腹が空いてきた... (Satiety DOWN)';
@@ -73,14 +79,19 @@ export class GiikuEngine {
       actionMessage = '🌫️ ツヤが失われた... (Luster DOWN)';
     }
 
+    // 称号判定
     const newTitles = this.titleEngine.evaluateTitles(currentState, command);
+    const newlyEarnedTitles = newTitles.filter(t => !prevState.titles.includes(t));
+
+    // スキンアンロック判定
+    const { unlockedIds, newlyUnlockedNames } = this.checkUnlockConditions(currentState);
 
     const updatedState: GiikuState = {
       ...currentState,
       condition,
       history,
       titles: newTitles,
-      unlockedSkinIds: this.checkUnlockConditions(currentState)
+      unlockedSkinIds: unlockedIds
     };
 
     this.stateStore.save(updatedState);
@@ -89,7 +100,12 @@ export class GiikuEngine {
       actionMessage = '👾 キャラクターはあなたの作業を見守っている...';
     }
 
-    return { message: actionMessage, state: updatedState };
+    return { 
+      message: actionMessage, 
+      state: updatedState,
+      newSkins: newlyUnlockedNames,
+      newTitles: newlyEarnedTitles
+    };
   }
 
   public refresh(): GiikuState {
@@ -122,31 +138,19 @@ export class GiikuEngine {
       todayCommits: stats.todayCommits,
       lastUpdate: new Date().toISOString(),
       daysActive,
-      condition: {
-        ...currentState.condition,
-        satiety: newSatiety,
-        luster: newLuster,
-      }
+      condition: { ...currentState.condition, satiety: newSatiety, luster: newLuster }
     };
 
-    const updatedState: GiikuState = {
-      ...tempState,
-      unlockedSkinIds: this.checkUnlockConditions(tempState)
-    };
+    const { unlockedIds } = this.checkUnlockConditions(tempState);
+    const updatedState = { ...tempState, unlockedSkinIds: unlockedIds };
 
     this.stateStore.save(updatedState);
     return updatedState;
   }
 
-  public getState(): GiikuState {
-    return this.stateStore.get();
-  }
-
+  public getState(): GiikuState { return this.stateStore.get(); }
   public setSkin(skinId: string): void {
     const currentState = this.stateStore.get();
-    this.stateStore.save({
-      ...currentState,
-      currentSkinId: skinId
-    });
+    this.stateStore.save({ ...currentState, currentSkinId: skinId });
   }
 }

@@ -1,37 +1,41 @@
 #!/usr/bin/env node
-import { jsx as _jsx } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
-import { render, useApp, useInput } from 'ink';
+import { render, useApp, useInput, Box } from 'ink';
 import { App } from './components/App.js';
 import { CommitReaction } from './components/CommitReaction.js';
+import { UnlockNotification } from './components/UnlockNotification.js';
 import { GiikuEngine } from './core/GiikuEngine.js';
 import { GitProvider } from './infra/GitProvider.js';
 import { ConfStateStore } from './infra/ConfStateStore.js';
 import { CharacterRenderer } from './infra/CharacterRenderer.js';
 import { SetupManager } from './core/SetupManager.js';
 import { translations } from './assets/translations.js';
-import { BASES } from './assets/parts.js';
-const TuiApp = ({ engine, renderer, userName, initialState }) => {
+import { SKIN_DEFINITIONS } from './assets/skins/definitions.js';
+const TuiApp = ({ engine, renderer, userName, initialState, godMode }) => {
     const { exit } = useApp();
     const [state, setState] = useState(initialState);
     useInput((input, key) => {
         if (input === 'q')
             exit();
-        // Skin switching with Left/Right arrows (only for unlocked skins)
         if (key.leftArrow || key.rightArrow) {
-            const unlockedBases = BASES.filter(b => state.unlockedSkinIds.includes(b.id));
-            const currentIndex = unlockedBases.findIndex(b => b.id === state.currentSkinId);
+            const availableBases = SKIN_DEFINITIONS.filter(b => godMode || state.unlockedSkinIds.includes(b.id));
+            const currentIndex = availableBases.findIndex(b => b.id === state.currentSkinId);
             let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
-            if (nextIndex >= unlockedBases.length)
+            if (nextIndex >= availableBases.length)
                 nextIndex = 0;
             if (nextIndex < 0)
-                nextIndex = unlockedBases.length - 1;
-            const nextSkinId = unlockedBases[nextIndex].id;
+                nextIndex = availableBases.length - 1;
+            const nextSkinId = availableBases[nextIndex].id;
             engine.setSkin(nextSkinId);
             setState({ ...state, currentSkinId: nextSkinId });
         }
     });
-    return _jsx(App, { state: state, renderer: renderer, userName: userName });
+    return _jsx(App, { state: state, renderer: renderer, userName: userName, godMode: godMode });
+};
+const RichReaction = ({ result, language }) => {
+    const renderer = new CharacterRenderer();
+    return (_jsxs(Box, { flexDirection: "column", children: [_jsx(CommitReaction, { state: result.state, renderer: renderer, message: result.message }), _jsx(UnlockNotification, { language: language, newSkins: result.newSkins, newTitles: result.newTitles })] }));
 };
 const main = () => {
     const args = process.argv.slice(2);
@@ -65,9 +69,19 @@ const main = () => {
         if (cmd === '--commit-reaction') {
             const result = engine.processHook(args.slice(1));
             if (result) {
-                const renderer = new CharacterRenderer();
-                render(_jsx(CommitReaction, { state: result.state, renderer: renderer, message: result.message }));
+                render(_jsx(RichReaction, { result: result, language: lang }));
             }
+            process.exit(0);
+        }
+        if (cmd === '--debug-unlock') {
+            // Simulation of unlock notification
+            const dummyResult = {
+                state: engine.getState(),
+                message: 'Debug Simulation',
+                newSkins: ['MECHA-GENUS'],
+                newTitles: ['Legendary Developer']
+            };
+            render(_jsx(RichReaction, { result: dummyResult, language: lang }));
             process.exit(0);
         }
         if (cmd === '--status-line') {
@@ -84,6 +98,11 @@ const main = () => {
             console.log(t.help);
             if (args.includes('--debug')) {
                 console.log(t.debugHelp);
+                console.log(`
+  SIMULATION OPTIONS:
+    --god-mode           Enable all skins temporarily in TUI.
+    --debug-unlock       Show simulation of unlock notification.
+        `);
             }
             process.exit(0);
         }
@@ -95,6 +114,7 @@ const main = () => {
     const renderer = new CharacterRenderer();
     const stats = gitProvider.getStats();
     const updatedState = engine.refresh();
-    render(_jsx(TuiApp, { engine: engine, renderer: renderer, userName: stats.userName, initialState: updatedState }));
+    const godMode = args.includes('--god-mode');
+    render(_jsx(TuiApp, { engine: engine, renderer: renderer, userName: stats.userName, initialState: updatedState, godMode: godMode }));
 };
 main();
