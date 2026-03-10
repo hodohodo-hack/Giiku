@@ -8,7 +8,9 @@ export const translations = {
       todayCommits: 'Today\'s Commits',
       activeDays: 'Active Days',
       status: 'STATUS',
-      quit: 'Press q to exit | Arrows: Switch Skin | Growth logic linked to Git'
+      quit: 'Press q to exit | Arrows: Switch Skin | /: Search | Growth logic linked to Git',
+      searchPlaceholder: 'Search Skin: ',
+      noResults: 'No skins found.'
     },
     // titles 項目は src/assets/titles/ 配下の定義ファイルに移動しました
     cli: {
@@ -70,7 +72,9 @@ export const translations = {
       todayCommits: '今日のコミット数',
       activeDays: '活動日数',
       status: 'ステータス',
-      quit: 'qキーで終了 | 左右キー: スキン切り替え | Git操作で育ちます'
+      quit: 'q:終了 | 左右キー:スキン切替 | /:検索 | Git操作で育ちます',
+      searchPlaceholder: 'スキンを検索: ',
+      noResults: '見つかりませんでした。'
     },
     cli: {
       startup: (name: string, satiety: number) => `\n👾 やあ ${name}！ 今日の開発も頑張ろう！ [満腹度: ${satiety}%]`,

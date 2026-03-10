@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { render, useApp, useInput, Box } from 'ink';
 import { App } from './components/App.js';
 import { CommitReaction } from './components/CommitReaction.js';
@@ -11,27 +11,102 @@ import { CharacterRenderer } from './infra/CharacterRenderer.js';
 import { SetupManager } from './core/SetupManager.js';
 import { ICharacterRenderer, Language, GiikuState } from './types.js';
 import { translations } from './assets/translations.js';
-import { SKIN_DEFINITIONS } from './assets/skins/definitions.js';
+import { SKIN_DEFINITIONS, SkinDefinition } from './assets/skins/definitions.js';
 
 const TuiApp: React.FC<{ engine: GiikuEngine, renderer: ICharacterRenderer, userName: string, initialState: GiikuState, godMode?: boolean }> = ({ engine, renderer, userName, initialState, godMode }) => {
   const { exit } = useApp();
   const [state, setState] = useState(initialState);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
+
+  const unlockedBases = useMemo(() => 
+    SKIN_DEFINITIONS.filter(b => godMode || state.unlockedSkinIds.includes(b.id)),
+    [state.unlockedSkinIds, godMode]
+  );
+
+  const fuzzyMatch = (text: string, query: string) => {
+    const q = query.toLowerCase();
+    const t = text.toLowerCase();
+    let n = -1;
+    for (let i = 0; i < q.length; i++) {
+      if (!~(n = t.indexOf(q[i], n + 1))) return false;
+    }
+    return true;
+  };
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery) return [];
+    return unlockedBases.filter(b => fuzzyMatch(b.name, searchQuery) || fuzzyMatch(b.id, searchQuery));
+  }, [searchQuery, unlockedBases]);
 
   useInput((input, key) => {
+    // 1. 検索モードの処理
+    if (isSearchMode) {
+      if (key.return) {
+        if (searchResults[searchSelectedIndex]) {
+          const skinId = searchResults[searchSelectedIndex].id;
+          engine.setSkin(skinId);
+          setState(prev => ({ ...prev, currentSkinId: skinId }));
+        }
+        setIsSearchMode(false);
+        setSearchQuery('');
+        return;
+      }
+      if (key.escape) {
+        setIsSearchMode(false);
+        setSearchQuery('');
+        return;
+      }
+      if (key.upArrow) {
+        setSearchSelectedIndex(prev => (prev > 0 ? prev - 1 : searchResults.length - 1));
+        return;
+      }
+      if (key.downArrow) {
+        setSearchSelectedIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : 0));
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setSearchQuery(prev => prev.slice(0, -1));
+        setSearchSelectedIndex(0);
+      } else if (input && !key.ctrl && !key.meta && input !== '/') {
+        setSearchQuery(prev => prev + input);
+        setSearchSelectedIndex(0);
+      }
+      return;
+    }
+
+    // 2. 通常モードの処理
+    if (input === '/') {
+      setIsSearchMode(true);
+      return;
+    }
     if (input === 'q') exit();
+
     if (key.leftArrow || key.rightArrow) {
-      const availableBases = SKIN_DEFINITIONS.filter(b => godMode || state.unlockedSkinIds.includes(b.id));
-      const currentIndex = availableBases.findIndex(b => b.id === state.currentSkinId);
+      const currentIndex = unlockedBases.findIndex(b => b.id === state.currentSkinId);
       let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
-      if (nextIndex >= availableBases.length) nextIndex = 0;
-      if (nextIndex < 0) nextIndex = availableBases.length - 1;
-      const nextSkinId = availableBases[nextIndex].id;
+      if (nextIndex >= unlockedBases.length) nextIndex = 0;
+      if (nextIndex < 0) nextIndex = unlockedBases.length - 1;
+      
+      const nextSkinId = unlockedBases[nextIndex].id;
       engine.setSkin(nextSkinId);
-      setState({ ...state, currentSkinId: nextSkinId });
+      setState(prev => ({ ...prev, currentSkinId: nextSkinId }));
     }
   });
 
-  return <App state={state} renderer={renderer} userName={userName} godMode={godMode} />;
+  return (
+    <App 
+      state={state} 
+      renderer={renderer} 
+      userName={userName} 
+      godMode={godMode} 
+      searchQuery={searchQuery}
+      isSearchMode={isSearchMode}
+      searchResults={searchResults}
+      selectedIndex={searchSelectedIndex}
+    />
+  );
 };
 
 const RichReaction: React.FC<{ result: any, language: 'en' | 'ja' }> = ({ result, language }) => {
@@ -84,7 +159,6 @@ const main = () => {
       process.exit(0);
     }
     if (cmd === '--debug-unlock') {
-      // Simulation of unlock notification
       const dummyResult = {
         state: engine.getState(),
         message: 'Debug Simulation',
