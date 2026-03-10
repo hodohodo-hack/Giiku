@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Box, Text } from 'ink';
 import { GiikuState, ICharacterRenderer } from '../types.js';
+import { translations } from '../assets/translations.js';
 
 interface AppProps {
   state: GiikuState;
@@ -9,6 +10,9 @@ interface AppProps {
 }
 
 export const App: React.FC<AppProps> = ({ state, renderer, userName }) => {
+  const lang = state.language || 'en';
+  const t = translations[lang].labels;
+
   return (
     <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1}>
       <Box marginBottom={1}>
@@ -16,32 +20,30 @@ export const App: React.FC<AppProps> = ({ state, renderer, userName }) => {
       </Box>
 
       <Box flexDirection="row">
-        {/* Character Illustration Area (Injectable Renderer) */}
         <Box width={30} justifyContent="center">
           {renderer.render(state)}
         </Box>
 
-        {/* Stats Area */}
         <Box flexDirection="column" paddingLeft={2}>
-          <Text color="yellow" bold>STATUS</Text>
-          <Text>  Satiety (Fullness): {state.condition.satiety}%</Text>
-          <Text>  Luster (Shine):    {state.condition.luster}%</Text>
-          <Text>  Intellect:         {state.condition.intellect}%</Text>
+          <Text color="yellow" bold>{t.status}</Text>
+          <Text>  {t.satiety}: {state.condition.satiety}%</Text>
+          <Text>  {t.luster}:  {state.condition.luster}%</Text>
+          <Text>  {t.intellect}: {state.condition.intellect}%</Text>
           
           <Box marginTop={1}>
-            <Text color="white" dimColor>Total Commits: {state.totalCommits}</Text>
+            <Text color="white" dimColor>{t.totalCommits}: {state.totalCommits}</Text>
           </Box>
           <Box>
-            <Text color="white" dimColor>Active Days:   {state.daysActive}</Text>
+            <Text color="white" dimColor>{t.activeDays}:   {state.daysActive}</Text>
           </Box>
           <Box marginTop={1}>
-            <Text>Title: <Text color="magenta" italic>{state.titles[0]}</Text></Text>
+            <Text>{t.title}: <Text color="magenta" italic>{state.titles[0]}</Text></Text>
           </Box>
         </Box>
       </Box>
 
       <Box marginTop={1} borderStyle="single" borderColor="gray">
-        <Text dimColor> Press q to exit | Growth logic linked to your Git history </Text>
+        <Text dimColor> {t.quit} </Text>
       </Box>
     </Box>
   );

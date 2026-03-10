@@ -9,7 +9,7 @@ export class SetupManager {
             path.join(home, '.zshrc')
         ].filter(file => fs.existsSync(file));
     }
-    getHookScript() {
+    getHookScript(lang) {
         return `
 # === Giiku Environment Setup ===
 # Start: Giiku integration
@@ -36,51 +36,48 @@ giiku --startup
 # End: Giiku Startup Greeting
 `;
     }
-    install() {
+    install(lang) {
         const files = this.getShellConfigFiles();
         if (files.length === 0) {
-            console.log('❌ 設定ファイル (.bashrc, .zshrc) が見つかりませんでした。');
+            console.log(lang === 'ja' ? '❌ 設定ファイルが見つかりませんでした。' : '❌ Shell config files not found.');
             return;
         }
-        const hookScript = this.getHookScript();
+        const hookScript = this.getHookScript(lang);
         const startupScript = this.getStartupScript();
         for (const file of files) {
             let content = fs.readFileSync(file, 'utf8');
             let updated = false;
-            // フックの追加
             if (!content.includes('Giiku Environment Setup')) {
                 content += `\n${hookScript}\n`;
                 updated = true;
             }
-            // 起動時挨拶の追加
             if (!content.includes('Giiku Startup Greeting')) {
                 content += `\n${startupScript}\n`;
                 updated = true;
             }
             if (updated) {
                 fs.writeFileSync(file, content);
-                console.log(`✅ ${file} にGiikuのフックと起動時挨拶をインストールしました。`);
-            }
-            else {
-                console.log(`⚠️ ${file} は既に設定済みです。`);
+                console.log(lang === 'ja' ? `✅ ${file} に設定をインストールしました。` : `✅ Installed Giiku to ${file}.`);
             }
         }
-        console.log('\n🎉 インストール完了！ターミナルを再起動するか `source ~/.bashrc` 等を実行してください。');
+        if (lang === 'ja') {
+            console.log('\n🎉 インストール完了！ターミナルを再起動してください。');
+        }
+        else {
+            console.log('\n🎉 Setup complete! Please restart your terminal.');
+        }
     }
-    uninstall() {
+    uninstall(lang) {
         const files = this.getShellConfigFiles();
         for (const file of files) {
             let content = fs.readFileSync(file, 'utf8');
             const originalContent = content;
-            // フックの削除
             content = content.replace(/\n# === Giiku Environment Setup ===[\s\S]*?# End: Giiku integration\n/g, '');
-            // 起動時挨拶の削除
             content = content.replace(/\n# === Giiku Startup Greeting ===[\s\S]*?# End: Giiku Startup Greeting\n/g, '');
             if (content !== originalContent) {
                 fs.writeFileSync(file, content);
-                console.log(`🗑️ ${file} からGiikuの設定を削除しました。`);
+                console.log(lang === 'ja' ? `🗑️ ${file} から設定を削除しました。` : `🗑️ Removed Giiku from ${file}.`);
             }
         }
-        console.log('👋 アンインストール完了。');
     }
 }

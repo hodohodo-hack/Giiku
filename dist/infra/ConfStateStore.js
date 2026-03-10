@@ -10,12 +10,13 @@ export class ConfStateStore {
                 lastUpdate: new Date().toISOString(),
                 currentSkinId: 'slime',
                 daysActive: 1,
-                titles: ['新米エンジニア'],
+                titles: ['Novice Engineer'],
                 history: {
                     commandCounts: {},
                     morningCommits: 0,
                     fixCommits: 0
-                }
+                },
+                language: 'en' // Default to English
             }
         });
     }
