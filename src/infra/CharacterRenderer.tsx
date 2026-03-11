@@ -14,8 +14,12 @@ export class CharacterRenderer implements ICharacterRenderer {
     const luster = state.condition.luster;
     const cfg = GIIKU_CONFIG.CONDITION.LUSTER;
 
+    // キャンバスサイズの固定設定
+    const CANVAS_WIDTH = GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH;
+    const CANVAS_HEIGHT = GIIKU_CONFIG.UI.CHARACTER_FRAME_HEIGHT;
+
     const getSparkleLine = (index: number, width: number, isTopBottom = false) => {
-      if (luster < cfg.AURA_THRESHOLD / 2) return null;
+      if (luster < cfg.AURA_THRESHOLD / 2) return ' '.repeat(width);
       const chars = luster > cfg.SPARKLE_THRESHOLD ? ['✧', '°', '*', '+', '·'] : ['*', '·', '°'];
       const density = Math.floor(luster / 20);
       let line = '';
@@ -31,41 +35,68 @@ export class CharacterRenderer implements ICharacterRenderer {
     };
 
     const lines = [...head.pixels, ...body.pixels, ...feet.pixels];
-    const getLineLength = (line: string | any[]) => typeof line === 'string' ? line.length : line.reduce((acc, seg) => acc + seg.t.length, 0);
-    const charWidth = Math.max(...lines.map(getLineLength));
+    
+    // 上下の余白計算
+    const actualHeight = lines.length;
+    const topPadding = Math.max(0, Math.floor((CANVAS_HEIGHT - actualHeight) / 2));
+    const bottomPadding = Math.max(0, CANVAS_HEIGHT - actualHeight - topPadding);
 
     return (
-      <Box flexDirection="column" alignItems="center">
-        {luster >= cfg.AURA_THRESHOLD && (
-          <Box height={1}><Text color="yellow">{getSparkleLine(-1, charWidth + 4, true)}</Text></Box>
-        )}
-        {lines.map((line, i) => {
-          const currentLen = getLineLength(line);
-          const paddingLeft = Math.floor((charWidth - currentLen) / 2);
-          return (
-            <Box key={i} flexDirection="row">
-              <Text color="yellow">{getSparkleLine(i, 2)}</Text>
-              <Box paddingX={1}>
-                <Text>
-                  {' '.repeat(paddingLeft)}
-                  {typeof line === 'string' ? (
-                    <Text color={color} bold>{line}</Text>
-                  ) : (
-                    <Text bold>
-                      {line.map((seg, j) => (
-                        <Text key={j} color={seg.c}>{seg.t}</Text>
-                      ))}
+      <Box flexDirection="column" alignItems="center" width={CANVAS_WIDTH + 4}>
+        {/* 上部オーラ */}
+        <Box height={1}>
+          <Text color="yellow" bold>
+            {luster >= cfg.AURA_THRESHOLD ? getSparkleLine(-1, CANVAS_WIDTH + 4, true) : ' '.repeat(CANVAS_WIDTH + 4)}
+          </Text>
+        </Box>
+
+        {/* 上部垂直余白 */}
+        {Array.from({ length: topPadding }).map((_, i) => (
+          <Box key={`top-${i}`} flexDirection="row" width={CANVAS_WIDTH + 4}>
+            <Text color="yellow" bold>{getSparkleLine(i + 10, 2)}</Text>
+            <Box flexGrow={1} />
+            <Text color="yellow" bold>{getSparkleLine(i + 60, 2)}</Text>
+          </Box>
+        ))}
+
+        {/* キャラクター描画 */}
+        {lines.map((line, i) => (
+          <Box key={`char-${i}`} flexDirection="row" width={CANVAS_WIDTH + 4} justifyContent="center">
+            <Text color="yellow" bold>{getSparkleLine(i, 2)}</Text>
+            
+            <Box width={CANVAS_WIDTH} justifyContent="center">
+              {typeof line === 'string' ? (
+                <Text color={color} bold>{line}</Text>
+              ) : (
+                <Text bold>
+                  {line.map((seg, j) => (
+                    <Text key={j} color={seg.c === 'black' ? 'gray' : (seg.c.endsWith('Bright') ? seg.c : `${seg.c}Bright`)} bold>
+                      {seg.t}
                     </Text>
-                  )}
+                  ))}
                 </Text>
-              </Box>
-              <Text color="yellow">{getSparkleLine(i + 50, 2)}</Text>
+              )}
             </Box>
-          );
-        })}
-        {luster >= cfg.AURA_THRESHOLD && (
-          <Box height={1}><Text color="yellow">{getSparkleLine(100, charWidth + 4, true)}</Text></Box>
-        )}
+
+            <Text color="yellow" bold>{getSparkleLine(i + 50, 2)}</Text>
+          </Box>
+        ))}
+
+        {/* 下部垂直余白 */}
+        {Array.from({ length: bottomPadding }).map((_, i) => (
+          <Box key={`bottom-${i}`} flexDirection="row" width={CANVAS_WIDTH + 4}>
+            <Text color="yellow" bold>{getSparkleLine(i + 30, 2)}</Text>
+            <Box flexGrow={1} />
+            <Text color="yellow" bold>{getSparkleLine(i + 80, 2)}</Text>
+          </Box>
+        ))}
+
+        {/* 下部オーラ */}
+        <Box height={1}>
+          <Text color="yellow" bold>
+            {luster >= cfg.AURA_THRESHOLD ? getSparkleLine(100, CANVAS_WIDTH + 4, true) : ' '.repeat(CANVAS_WIDTH + 4)}
+          </Text>
+        </Box>
       </Box>
     );
   }

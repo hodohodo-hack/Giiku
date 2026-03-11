@@ -34,7 +34,7 @@ export const App: React.FC<AppProps> = ({
   );
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} minWidth={60}>
+    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} minWidth={70}>
       {/* Header */}
       <Box marginBottom={1} justifyContent="space-between">
         <Box flexDirection="row">
@@ -45,14 +45,13 @@ export const App: React.FC<AppProps> = ({
         <Text color="gray">[{totalCountSafe(totalAvailable, currentDisplayIndex)}/{totalAvailable}]</Text>
       </Box>
 
-      {/* Main Content: Character (Left) & Stats (Right) */}
-      <Box flexDirection="row" minHeight={20}>
-        {/* Character Display Area */}
+      {/* Main Content */}
+      <Box flexDirection="row">
+        {/* Character Display Area (Fixed Size) */}
         <Box 
           width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH + 10} 
           flexDirection="column" 
           alignItems="center"
-          justifyContent="center"
           borderStyle="single"
           borderColor="gray"
         >
