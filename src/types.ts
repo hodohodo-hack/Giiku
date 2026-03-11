@@ -21,6 +21,9 @@ export interface GiikuState {
   todayCommits: number; // Added
   lastUpdate: string;
   currentSkinId: string;
+  selectedHeadIndex: number;
+  selectedBodyIndex: number;
+  selectedFeetIndex: number;
   unlockedSkinIds: string[]; // Track obtained characters
   daysActive: number;
   titles: string[];

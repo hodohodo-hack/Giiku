@@ -7,9 +7,9 @@ import { GIIKU_CONFIG } from '../assets/config.js';
 export class CharacterRenderer implements ICharacterRenderer {
   render(state: GiikuState) {
     const base = SKIN_DEFINITIONS.find(b => b.id === state.currentSkinId) || SKIN_DEFINITIONS[0];
-    const head = base.heads[0];
-    const body = base.bodies[0];
-    const feet = base.feet[0];
+    const head = base.heads[state.selectedHeadIndex] || base.heads[0];
+    const body = base.bodies[state.selectedBodyIndex] || base.bodies[0];
+    const feet = base.feet[state.selectedFeetIndex] || base.feet[0];
     const color = base.color;
     const luster = state.condition.luster;
     const cfg = GIIKU_CONFIG.CONDITION.LUSTER;
@@ -31,20 +31,38 @@ export class CharacterRenderer implements ICharacterRenderer {
     };
 
     const lines = [...head.pixels, ...body.pixels, ...feet.pixels];
-    const charWidth = lines[0].length;
+    const getLineLength = (line: string | any[]) => typeof line === 'string' ? line.length : line.reduce((acc, seg) => acc + seg.t.length, 0);
+    const charWidth = Math.max(...lines.map(getLineLength));
 
     return (
       <Box flexDirection="column" alignItems="center">
         {luster >= cfg.AURA_THRESHOLD && (
           <Box height={1}><Text color="yellow">{getSparkleLine(-1, charWidth + 4, true)}</Text></Box>
         )}
-        {lines.map((line, i) => (
-          <Box key={i} flexDirection="row">
-            <Text color="yellow">{getSparkleLine(i, 2)}</Text>
-            <Box paddingX={1}><Text color={color} bold>{line}</Text></Box>
-            <Text color="yellow">{getSparkleLine(i + 50, 2)}</Text>
-          </Box>
-        ))}
+        {lines.map((line, i) => {
+          const currentLen = getLineLength(line);
+          const paddingLeft = Math.floor((charWidth - currentLen) / 2);
+          return (
+            <Box key={i} flexDirection="row">
+              <Text color="yellow">{getSparkleLine(i, 2)}</Text>
+              <Box paddingX={1}>
+                <Text>
+                  {' '.repeat(paddingLeft)}
+                  {typeof line === 'string' ? (
+                    <Text color={color} bold>{line}</Text>
+                  ) : (
+                    <Text bold>
+                      {line.map((seg, j) => (
+                        <Text key={j} color={seg.c}>{seg.t}</Text>
+                      ))}
+                    </Text>
+                  )}
+                </Text>
+              </Box>
+              <Text color="yellow">{getSparkleLine(i + 50, 2)}</Text>
+            </Box>
+          );
+        })}
         {luster >= cfg.AURA_THRESHOLD && (
           <Box height={1}><Text color="yellow">{getSparkleLine(100, charWidth + 4, true)}</Text></Box>
         )}

@@ -12,8 +12,11 @@ export class ConfStateStore implements IStateStore {
         totalCommits: 0,
         todayCommits: 0,
         lastUpdate: new Date().toISOString(),
-        currentSkinId: 'slime',
-        unlockedSkinIds: ['slime'],
+        currentSkinId: 'hamburger',
+        selectedHeadIndex: 0,
+        selectedBodyIndex: 0,
+        selectedFeetIndex: 0,
+        unlockedSkinIds: ['hamburger', 'onigiri'],
         daysActive: 1,
         titles: ['Novice Engineer'],
         history: {

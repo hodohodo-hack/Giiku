@@ -1,8 +1,13 @@
 import { GiikuState } from '../../types.js';
 
+export interface PixelSegment {
+  c: string;
+  t: string;
+}
+
 export interface Part {
   name: string;
-  pixels: string[];
+  pixels: (string | PixelSegment[])[];
 }
 
 export interface SkinDefinition {

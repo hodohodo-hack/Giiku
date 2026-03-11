@@ -151,6 +151,13 @@ export class GiikuEngine {
   public getState(): GiikuState { return this.stateStore.get(); }
   public setSkin(skinId: string): void {
     const currentState = this.stateStore.get();
-    this.stateStore.save({ ...currentState, currentSkinId: skinId });
+    this.stateStore.save({ ...currentState, currentSkinId: skinId, selectedHeadIndex: 0, selectedBodyIndex: 0, selectedFeetIndex: 0 });
+  }
+
+  public setPart(type: 'head' | 'body' | 'feet', index: number): void {
+    const currentState = this.stateStore.get();
+    if (type === 'head') this.stateStore.save({ ...currentState, selectedHeadIndex: index });
+    if (type === 'body') this.stateStore.save({ ...currentState, selectedBodyIndex: index });
+    if (type === 'feet') this.stateStore.save({ ...currentState, selectedFeetIndex: index });
   }
 }

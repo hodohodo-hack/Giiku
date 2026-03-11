@@ -27,7 +27,7 @@ export const GIIKU_CONFIG = {
 
   // --- UI レイアウト (UI Layout) ---
   UI: {
-    CHARACTER_FRAME_HEIGHT: 12, // キャラクター表示エリアの固定高さ (行数)
+    CHARACTER_FRAME_HEIGHT: 16, // キャラクター表示エリアの固定高さ (行数)
     CHARACTER_FRAME_WIDTH: 30,  // キャラクター表示エリアの固定幅
   },
 

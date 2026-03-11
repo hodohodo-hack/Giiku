@@ -23,9 +23,10 @@ export const CommitReaction: React.FC<CommitReactionProps> = ({ state, renderer,
 
       <Box flexDirection="row" alignItems="center">
         <Box 
-          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH} 
+          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH + 10} 
           height={GIIKU_CONFIG.UI.CHARACTER_FRAME_HEIGHT} 
           justifyContent="center"
+          alignItems="center"
         >
           {renderer.render(state)}
         </Box>

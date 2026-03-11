@@ -15,81 +15,62 @@ import { SKIN_DEFINITIONS } from './assets/skins/definitions.js';
 const TuiApp = ({ engine, renderer, userName, initialState, godMode }) => {
     const { exit } = useApp();
     const [state, setState] = useState(initialState);
-    const [isSearchMode, setIsSearchMode] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchSelectedIndex, setSearchSelectedIndex] = useState(0);
+    const [selectedSlot, setSelectedSlot] = useState(0); // 0: Skin, 1: Head, 2: Body, 3: Feet
     const unlockedBases = useMemo(() => SKIN_DEFINITIONS.filter(b => godMode || state.unlockedSkinIds.includes(b.id)), [state.unlockedSkinIds, godMode]);
-    const fuzzyMatch = (text, query) => {
-        const q = query.toLowerCase();
-        const t = text.toLowerCase();
-        let n = -1;
-        for (let i = 0; i < q.length; i++) {
-            if (!~(n = t.indexOf(q[i], n + 1)))
-                return false;
-        }
-        return true;
-    };
-    const searchResults = useMemo(() => {
-        if (!searchQuery)
-            return [];
-        return unlockedBases.filter(b => fuzzyMatch(b.name, searchQuery) || fuzzyMatch(b.id, searchQuery));
-    }, [searchQuery, unlockedBases]);
+    const currentSkin = useMemo(() => SKIN_DEFINITIONS.find(b => b.id === state.currentSkinId) || SKIN_DEFINITIONS[0], [state.currentSkinId]);
     useInput((input, key) => {
-        // 1. 検索モードの処理
-        if (isSearchMode) {
-            if (key.return) {
-                if (searchResults[searchSelectedIndex]) {
-                    const skinId = searchResults[searchSelectedIndex].id;
-                    engine.setSkin(skinId);
-                    setState(prev => ({ ...prev, currentSkinId: skinId }));
-                }
-                setIsSearchMode(false);
-                setSearchQuery('');
-                return;
-            }
-            if (key.escape) {
-                setIsSearchMode(false);
-                setSearchQuery('');
-                return;
-            }
-            if (key.upArrow) {
-                setSearchSelectedIndex(prev => (prev > 0 ? prev - 1 : searchResults.length - 1));
-                return;
-            }
-            if (key.downArrow) {
-                setSearchSelectedIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : 0));
-                return;
-            }
-            if (key.backspace || key.delete) {
-                setSearchQuery(prev => prev.slice(0, -1));
-                setSearchSelectedIndex(0);
-            }
-            else if (input && !key.ctrl && !key.meta && input !== '/') {
-                setSearchQuery(prev => prev + input);
-                setSearchSelectedIndex(0);
-            }
-            return;
-        }
-        // 2. 通常モードの処理
-        if (input === '/') {
-            setIsSearchMode(true);
-            return;
-        }
-        if (input === 'q')
+        if (input === 'q') {
             exit();
+            return;
+        }
+        if (key.upArrow) {
+            setSelectedSlot(prev => (prev > 0 ? prev - 1 : 3));
+        }
+        if (key.downArrow) {
+            setSelectedSlot(prev => (prev < 3 ? prev + 1 : 0));
+        }
         if (key.leftArrow || key.rightArrow) {
-            const currentIndex = unlockedBases.findIndex(b => b.id === state.currentSkinId);
-            let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
-            if (nextIndex >= unlockedBases.length)
-                nextIndex = 0;
-            if (nextIndex < 0)
-                nextIndex = unlockedBases.length - 1;
-            const nextSkinId = unlockedBases[nextIndex].id;
-            engine.setSkin(nextSkinId);
-            setState(prev => ({ ...prev, currentSkinId: nextSkinId }));
+            if (selectedSlot === 0) {
+                const currentIndex = unlockedBases.findIndex(b => b.id === state.currentSkinId);
+                let nextIndex = key.rightArrow ? currentIndex + 1 : currentIndex - 1;
+                if (nextIndex >= unlockedBases.length)
+                    nextIndex = 0;
+                if (nextIndex < 0)
+                    nextIndex = unlockedBases.length - 1;
+                const nextSkinId = unlockedBases[nextIndex].id;
+                engine.setSkin(nextSkinId);
+                setState(prev => ({ ...prev, currentSkinId: nextSkinId, selectedHeadIndex: 0, selectedBodyIndex: 0, selectedFeetIndex: 0 }));
+            }
+            else if (selectedSlot === 1) {
+                let nextIndex = key.rightArrow ? state.selectedHeadIndex + 1 : state.selectedHeadIndex - 1;
+                if (nextIndex >= currentSkin.heads.length)
+                    nextIndex = 0;
+                if (nextIndex < 0)
+                    nextIndex = currentSkin.heads.length - 1;
+                engine.setPart('head', nextIndex);
+                setState(prev => ({ ...prev, selectedHeadIndex: nextIndex }));
+            }
+            else if (selectedSlot === 2) {
+                let nextIndex = key.rightArrow ? state.selectedBodyIndex + 1 : state.selectedBodyIndex - 1;
+                if (nextIndex >= currentSkin.bodies.length)
+                    nextIndex = 0;
+                if (nextIndex < 0)
+                    nextIndex = currentSkin.bodies.length - 1;
+                engine.setPart('body', nextIndex);
+                setState(prev => ({ ...prev, selectedBodyIndex: nextIndex }));
+            }
+            else if (selectedSlot === 3) {
+                let nextIndex = key.rightArrow ? state.selectedFeetIndex + 1 : state.selectedFeetIndex - 1;
+                if (nextIndex >= currentSkin.feet.length)
+                    nextIndex = 0;
+                if (nextIndex < 0)
+                    nextIndex = currentSkin.feet.length - 1;
+                engine.setPart('feet', nextIndex);
+                setState(prev => ({ ...prev, selectedFeetIndex: nextIndex }));
+            }
         }
     });
-    return (_jsx(App, { state: state, renderer: renderer, userName: userName, godMode: godMode, searchQuery: searchQuery, isSearchMode: isSearchMode, searchResults: searchResults, selectedIndex: searchSelectedIndex }));
+    return (_jsx(App, { state: state, renderer: renderer, userName: userName, godMode: godMode, selectedSlot: selectedSlot }));
 };
 const RichReaction = ({ result, language }) => {
     const renderer = new CharacterRenderer();

@@ -10,40 +10,32 @@ interface AppProps {
   renderer: ICharacterRenderer;
   userName: string;
   godMode?: boolean;
-  searchQuery?: string;
-  isSearchMode?: boolean;
-  searchResults?: SkinDefinition[];
-  selectedIndex?: number;
+  selectedSlot?: number;
 }
 
 export const App: React.FC<AppProps> = ({ 
   state, renderer, userName, godMode = false, 
-  searchQuery = '', isSearchMode = false,
-  searchResults = [], selectedIndex = 0
+  selectedSlot = 0
 }) => {
   const lang = state.language || 'en';
   const t = translations[lang].labels;
 
   const unlockedBases = SKIN_DEFINITIONS.filter(b => godMode || state.unlockedSkinIds.includes(b.id));
-  const currentSkin = searchResults.length > 0 ? searchResults[selectedIndex] : unlockedBases.find(b => b.id === state.currentSkinId) || unlockedBases[0];
+  const currentSkin = unlockedBases.find(b => b.id === state.currentSkinId) || unlockedBases[0];
   
   const totalAvailable = unlockedBases.length;
   const currentDisplayIndex = unlockedBases.indexOf(currentSkin!) + 1;
 
-  // スライディングウィンドウ（最大3件表示）の計算
-  const windowSize = 3;
-  let start = Math.max(0, selectedIndex - Math.floor(windowSize / 2));
-  let end = start + windowSize;
-  
-  if (end > searchResults.length) {
-    end = searchResults.length;
-    start = Math.max(0, end - windowSize);
-  }
-
-  const visibleResults = searchResults.slice(start, end);
+  const getSlotColor = (index: number) => index === selectedSlot ? 'cyan' : 'white';
+  const getSlotText = (index: number, label: string, value: string) => (
+    <Text color={getSlotColor(index)}>
+      {index === selectedSlot ? ' > ' : '   '} {label}: {value}
+    </Text>
+  );
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1}>
+    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} minWidth={60}>
+      {/* Header */}
       <Box marginBottom={1} justifyContent="space-between">
         <Box flexDirection="row">
           <Text bold color="green">👾 Giiku (v0.1.0)</Text>
@@ -53,73 +45,60 @@ export const App: React.FC<AppProps> = ({
         <Text color="gray">[{totalCountSafe(totalAvailable, currentDisplayIndex)}/{totalAvailable}]</Text>
       </Box>
 
-      <Box flexDirection="row">
+      {/* Main Content: Character (Left) & Stats (Right) */}
+      <Box flexDirection="row" minHeight={20}>
+        {/* Character Display Area */}
         <Box 
-          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH} 
-          height={GIIKU_CONFIG.UI.CHARACTER_FRAME_HEIGHT} 
-          justifyContent="center" 
+          width={GIIKU_CONFIG.UI.CHARACTER_FRAME_WIDTH + 10} 
           flexDirection="column" 
           alignItems="center"
+          justifyContent="center"
+          borderStyle="single"
+          borderColor="gray"
         >
           {currentSkin ? (
-            <React.Fragment>
+            <Box flexDirection="column" alignItems="center">
               {renderer.render({ ...state, currentSkinId: currentSkin.id })}
-              <Box marginTop={1}>
-                <Text color="cyan" inverse> {currentSkin.name} </Text>
+              <Box marginTop={1} flexDirection="column" alignItems="flex-start" paddingX={1}>
+                {getSlotText(0, t.skin || 'Skin', currentSkin.name)}
+                {getSlotText(1, t.head || 'Head', currentSkin.heads[state.selectedHeadIndex]?.name || 'N/A')}
+                {getSlotText(2, t.body || 'Body', currentSkin.bodies[state.selectedBodyIndex]?.name || 'N/A')}
+                {getSlotText(3, t.feet || 'Feet', currentSkin.feet[state.selectedFeetIndex]?.name || 'N/A')}
               </Box>
-            </React.Fragment>
+            </Box>
           ) : (
-            <Text color="red">{t.noResults}</Text>
+            <Text color="red">No Skin Data</Text>
           )}
         </Box>
 
-        <Box flexDirection="column" paddingLeft={2}>
-          <Text color="yellow" bold>{t.status}</Text>
-          <Text>  {t.satiety}: {state.condition.satiety}%</Text>
-          <Text>  {t.luster}:  {state.condition.luster}%</Text>
+        {/* Stats Area */}
+        <Box flexDirection="column" paddingLeft={2} flexGrow={1} borderStyle="single" borderColor="gray">
+          <Text color="yellow" bold inverse>{`  ${t.status}  `}</Text>
+          <Box marginTop={1} flexDirection="column">
+            <Text>  {t.satiety}: {state.condition.satiety}%</Text>
+            <Text>  {t.luster}:  {state.condition.luster}%</Text>
+          </Box>
           
-          <Box marginTop={1}>
-            <Text color="white" dimColor>{t.totalCommits}: {state.totalCommits}</Text>
+          <Box marginTop={1} flexDirection="column" borderStyle="classic" borderColor="dim">
+            <Text color="white" dimColor> {t.totalCommits}: {state.totalCommits}</Text>
+            <Text color="white" dimColor> {t.todayCommits}: {state.todayCommits}</Text>
+            <Text color="white" dimColor> {t.activeDays}:   {state.daysActive}</Text>
           </Box>
-          <Box>
-            <Text color="white" dimColor>{t.todayCommits}: {state.todayCommits}</Text>
+
+          <Box marginTop={1} paddingX={1}>
+            <Text>{t.title}:</Text>
+            <Text color="magenta" italic bold> {state.titles[0]}</Text>
           </Box>
-          <Box>
-            <Text color="white" dimColor>{t.activeDays}:   {state.daysActive}</Text>
-          </Box>
-          <Box marginTop={1}>
-            <Text>{t.title}: <Text color="magenta" italic>{state.titles[0]}</Text></Text>
+
+          <Box marginTop={2} paddingX={1}>
+             <Text color="cyan" dimColor>Skin Desc:</Text>
+             <Text color="white" wrap="wrap"> {currentSkin?.desc[lang] || currentSkin?.desc.en}</Text>
           </Box>
         </Box>
       </Box>
 
-      {/* 検索候補ドロワー (スクロール対応版) */}
-      {isSearchMode && (
-        <Box flexDirection="column" marginTop={1}>
-          {searchResults.length > 0 && (
-            <Box flexDirection="column" paddingX={1} marginBottom={1}>
-              {start > 0 && <Text dimColor>   ↑ ({start} more)</Text>}
-              {visibleResults.map((res, i) => {
-                const globalIndex = start + i;
-                return (
-                  <Text key={res.id} color={globalIndex === selectedIndex ? 'cyan' : 'white'}>
-                    {globalIndex === selectedIndex ? ' > ' : '   '} {res.name}
-                  </Text>
-                );
-              })}
-              {end < searchResults.length && <Text dimColor>   ↓ ({searchResults.length - end} more)</Text>}
-            </Box>
-          )}
-          
-          <Box paddingX={1} borderStyle="single" borderColor="yellow">
-            <Text bold color="yellow">{t.searchPlaceholder}</Text>
-            <Text>{searchQuery}</Text>
-            <Text color="yellow" bold>_</Text>
-          </Box>
-        </Box>
-      )}
-
-      <Box marginTop={1} borderStyle="single" borderColor="gray">
+      {/* Footer / Controls */}
+      <Box marginTop={1} borderStyle="single" borderColor="gray" paddingX={1}>
         <Text dimColor> {t.quit} </Text>
       </Box>
     </Box>
