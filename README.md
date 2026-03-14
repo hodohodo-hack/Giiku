@@ -21,8 +21,8 @@ Gi育は、日々の開発（Git操作）をキャラクターの育成体験に
 
 ### 1. インストール
 ```bash
-git clone https://github.com/your-username/giiku.git
-cd giiku
+git clone https://github.com/hodohodo-hack/Giiku.git
+cd Giiku
 npm install
 ```
 
